@@ -1,2 +1,8 @@
 {
+    "sources_names" : ["Sim101", "Sim102"],
+    "server_ip": "192.168.1.117",
+    // all the clients that associated with some source
+    
+    "allowed_clients" : []
+
 }
