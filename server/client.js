@@ -5,7 +5,9 @@ const path = require('path');
 let serverIp = "192.168.1.116"; // IP of the local server
 const serverUrl = `http://${serverIp}:3000`;
 
-const localFilePath = path.join(__dirname, 'Globex_Source1_position.txt'); // Ensures file is in the current directory
+const localFilePath = "C:/Users/noaam/OneDrive/Documents/NinjaTrader 8/outgoing/Globex_Source1_position.txt";
+
+
 
 console.log(`Connecting to server at: ${serverUrl}`);
 const socket = io(serverUrl);
