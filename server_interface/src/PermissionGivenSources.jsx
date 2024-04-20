@@ -5,6 +5,7 @@ import './permissionGivenSources.css';
 const DataTable = () => {
   const [tracking, setTracking] = useState({});
   const [tableData, setTableData] = useState([]);
+  const [clientCount, setClientCount] = useState(0);  // State to hold the count of connected clients
 
   useEffect(() => {
     const storedTrackingData = localStorage.getItem('trackingData');
@@ -12,6 +13,7 @@ const DataTable = () => {
       setTracking(JSON.parse(storedTrackingData));
     }
     fetchDestinationsToTracking();
+    fetchClientCount(); // Fetch initial client count on mount
   }, []);
 
   useEffect(() => {
@@ -36,6 +38,15 @@ const DataTable = () => {
     }
   };
 
+  const fetchClientCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/countConnectedClients');
+      setClientCount(response.data.count); // Assuming the endpoint returns an object with a count property
+    } catch (error) {
+      console.error('Failed to fetch client count:', error);
+    }
+  };
+
   const handleCheckboxChange = (id) => {
     setTracking(prev => ({ ...prev, [id]: !prev[id] }));
   };
@@ -46,6 +57,7 @@ const DataTable = () => {
       const response = await axios.post('http://localhost:3001/updatePermissions', tracking);
       console.log('Permissions updated:', response.data);
       alert('Permissions successfully updated.');
+      fetchClientCount();  // Refresh the client count after permissions are updated
     } catch (error) {
       console.error('Failed to update permissions:', error.response ? error.response.data : error.message);
       alert('Failed to update permissions.');
@@ -54,6 +66,7 @@ const DataTable = () => {
 
   return (
     <div className="table-container">
+      <div className="client-count">Current Connections: {clientCount}</div>
       <table className="table">
         <thead>
           <tr>

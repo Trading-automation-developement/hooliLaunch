@@ -48,3 +48,29 @@
 .button:hover {
   background-color: #45a049;
 }
+
+.client-count {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 18px;
+  color: #333;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.client-count {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 24px; 
+  color: #333;
+  background-color: #e8f8ee;
+  padding: 15px; 
+  border-radius: 8px; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+  font-weight: bold; 
+}
+
