@@ -24,12 +24,22 @@ function ClientInterface() {
     };
 
     fetchAllowedDestinationsToTracking();
+    fetchClientCount(); // Fetch initial client count on mount
   }, []); 
+
+  const fetchClientCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/countConnectedClients');
+      setClientCount(response.data.count); // Assuming the endpoint returns an object with a count property
+    } catch (error) {
+      console.error('Failed to fetch client count:', error);
+    }
+  };
 
   const handleConnect = () => {
     setConnected(true);
+    fetchClientCount(); // Refresh the client count after connecting
     console.log('Connected to server!');
-    setClientCount(prevCount => prevCount + 1); 
   };
 
   const handleCheckboxChange = (accountId) => {
@@ -49,7 +59,7 @@ function ClientInterface() {
       <table className="table">
         <thead>
           <tr>
-            <th>Account Name</th>
+            <th>Bag TO Track</th>
             <th>Select</th>
           </tr>
         </thead>
