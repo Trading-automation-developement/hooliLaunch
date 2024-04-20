@@ -81,7 +81,16 @@ async function initializeServer() {
     console.error('Failed to initialize the server:', error);
   }
 }
-
+app.get('/getDestinationsAllowTracking', async (req, res) => {
+  try {
+    const settings = await getDestinationsFromSettings();
+    const destinationsTrackingAllowed = settings.allowed_destinations;
+    res.json(destinationsTrackingAllowed); 
+  } catch (error) {
+    console.error('Failed to retrieve settings:', error);
+    res.status(500).json({ error: "Failed to retrieve destinations tracking data" });
+  }
+});
 async function getDestinationsFromSettings() {
   const settingsPath = path.join(__dirname, 'settings.json');
   return new Promise((resolve, reject) => {
