@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 let serverIp = "192.168.1.116"; // IP of the local server
-const serverUrl = `http://${serverIp}:3000`;
+const serverUrl = `http://${serverIp}:3001`;
 
 const localFilePath = "C:/Users/noaam/OneDrive/Documents/NinjaTrader 8/outgoing/Globex_Source1_position.txt";
 
