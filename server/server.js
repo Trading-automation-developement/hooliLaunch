@@ -14,6 +14,12 @@ app.use(express.json());
 let fileChangesTracking = [];
 let clients = {};  
 
+app.get('/countConnectedClients', (req, res) => {
+  const numberOfConnectedClients = Object.keys(clients).length; 
+  res.json({ count: numberOfConnectedClients });
+});
+
+
 app.post('/updatePermissions', async (req, res) => {
   const updatedPermissions = req.body; // Expected to be an object with { [index]: true/false }
 
