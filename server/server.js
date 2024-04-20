@@ -14,6 +14,42 @@ app.use(express.json());
 let fileChangesTracking = [];
 let clients = {};  
 
+app.post('/updatePermissions', async (req, res) => {
+  const updatedPermissions = req.body; // Expected to be an object with { [index]: true/false }
+
+  try {
+    const settings = await getSettings();  // Load current settings
+    const currentDestinations = await getDestinationsFromSettings();
+
+    // Update the allowed_destinations based on index received and whether it is allowed
+    settings.allowed_destinations = Object.entries(updatedPermissions).reduce((acc, [index, isAllowed]) => {
+      if (isAllowed) {  // If tracking is allowed, add the destination name using the index
+        const destinationName = currentDestinations.destinations_tracking[parseInt(index)];
+        if (destinationName) {
+          acc.push(destinationName); // Assuming destinationName is just a string
+        }
+      }
+      return acc;
+    }, []);
+
+    // Write the updated settings back to the settings.json
+    const settingsPath = path.join(__dirname, 'settings.json');
+    fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf8', err => {
+      if (err) {
+        console.error('Failed to update settings.json:', err);
+        res.status(500).json({ error: "Failed to update destination tracking settings" });
+        return;
+      }
+      console.log('Destination tracking settings updated');
+      res.status(200).json({ message: "Destination tracking settings successfully updated" });
+    });
+  } catch (error) {
+    console.error('Failed to update destination tracking permissions:', error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 app.get('/getDestinationsTracking', async (req, res) => {
   try {
     const settings = await getDestinationsFromSettings();
