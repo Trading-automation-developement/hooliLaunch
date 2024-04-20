@@ -6,12 +6,25 @@ const chokidar = require('chokidar');
 const path = require("path");
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
-app.use(express.json());
+// Enable CORS for all origins
 app.use(cors());
 
+app.use(express.json());
+
 let fileChangesTracking = [];
+
+app.get('/getDestinationsTracking', async (req, res) => {
+  try {
+    const settings = await getDestinationsFromSettings();
+    const destinationsTracking = settings.destinations_tracking;
+    res.json(destinationsTracking); 
+  } catch (error) {
+    console.error('Failed to retrieve settings:', error);
+    res.status(500).json({ error: "Failed to retrieve destinations tracking data" });
+  }
+});
 
 async function initializeServer() {
   try {
@@ -21,7 +34,7 @@ async function initializeServer() {
 
     const pathToWatch = "/home/noaa/Documents/NinjaTrader 8/outgoing/Globex_Source1_position.txt";
     const watcher = chokidar.watch(pathToWatch, {
-      ignored: /(^|[\/\\])\../, // ignore dotfiles
+      ignored: /(^|[\/\\])\../, 
       persistent: true
     });
 
@@ -31,7 +44,7 @@ async function initializeServer() {
 
     const io = socketIO(server, {
       cors: {
-        origin: "*",
+        origin: "*", 
         methods: ["GET", "POST"]
       }
     });
@@ -46,7 +59,7 @@ async function initializeServer() {
             console.error('Error reading file:', err);
             return;
           }
-          fileChangesTracking.push(data); // Track file change history
+          fileChangesTracking.push(data); 
           io.emit('fileChange', data);
         });
       });

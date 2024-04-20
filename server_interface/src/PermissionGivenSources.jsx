@@ -1,14 +1,28 @@
-import React, { useState } from 'react';
-import './permissionGivenSources.css'; // Make sure the import path is correct
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './permissionGivenSources.css';
 
 const DataTable = () => {
   const [tracking, setTracking] = useState({});
+  const [tableData, setTableData] = useState([]); 
 
-  const dataSources = [
-    { id: 1, name: 'First Source' },
-    { id: 2, name: 'Second Source' },
-    { id: 3, name: 'Third Source' }
-  ];
+  useEffect(() => {
+    fetchDestinationsToTracking();
+  }, []);
+
+  const fetchDestinationsToTracking = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/getDestinationsTracking');
+      const destinations = response.data;
+      console.log(`In the frontend part:`, destinations);
+      setTableData(destinations.map((destination, index) => ({
+        id: index,
+        name: destination  
+      })));
+    } catch (error) {
+      console.error('Failed to fetch destinations:', error.response ? error.response.data : error.message);
+    }
+  };
 
   const handleCheckboxChange = (id) => {
     setTracking(prev => ({ ...prev, [id]: !prev[id] }));
@@ -20,7 +34,7 @@ const DataTable = () => {
   };
 
   return (
-    <div className="table-container"> {}
+    <div className="table-container">
       <table className="table">
         <thead>
           <tr>
@@ -29,7 +43,7 @@ const DataTable = () => {
           </tr>
         </thead>
         <tbody>
-          {dataSources.map((source) => (
+          {tableData.map((source) => (
             <tr key={source.id}>
               <td>{source.name}</td>
               <td>
