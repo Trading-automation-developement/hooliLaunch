@@ -1,21 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'; 
 import './mainClientInterface.css';
-
-const accountsData = [
-  { id: 1, name: 'Account A' },
-  { id: 2, name: 'Account B' },
-  { id: 3, name: 'Account C' },
-];
 
 function ClientInterface() {
   const [connected, setConnected] = useState(false);
+  const [tableData, setTableData] = useState([]); 
   const [selectedAccounts, setSelectedAccounts] = useState([]);
-  const [clientCount, setClientCount] = useState(0); // State to track the number of connected clients
+  const [clientCount, setClientCount] = useState(0); 
+
+  useEffect(() => {
+    const fetchAllowedDestinationsToTracking = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/getDestinationsAllowTracking');
+        const destinationsAllowed = response.data;
+        console.log('Fetched data:', destinationsAllowed);
+        setTableData(destinationsAllowed.map((destination, index) => ({
+          id: index,
+          name: destination  
+        })));
+      } catch (error) {
+        console.error('Failed to fetch destinations:', error.response ? error.response.data : error.message);
+      }
+    };
+
+    fetchAllowedDestinationsToTracking();
+  }, []); 
 
   const handleConnect = () => {
     setConnected(true);
     console.log('Connected to server!');
-    setClientCount(prevCount => prevCount + 1); // Increment client count upon connection
+    setClientCount(prevCount => prevCount + 1); 
   };
 
   const handleCheckboxChange = (accountId) => {
@@ -31,7 +45,7 @@ function ClientInterface() {
   return (
     <div className="table-container">
       <h1>Client Trade Copier Interface</h1>
-      <div className="client-count">Current Connections: {clientCount}</div> {/* Display the number of connected clients */}
+      <div className="client-count">Current Connections: {clientCount}</div>
       <table className="table">
         <thead>
           <tr>
@@ -40,7 +54,7 @@ function ClientInterface() {
           </tr>
         </thead>
         <tbody>
-          {accountsData.map(account => (
+          {tableData.map(account => (
             <tr key={account.id}>
               <td>{account.name}</td>
               <td>
