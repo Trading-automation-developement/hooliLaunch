@@ -8,11 +8,5 @@
   "allowed_destinations": [
     "Sim101"
   ],
-  "clients_connected": [
-    {
-      "id": "IPLjXzTVeLSeyUAiAAAB",
-      "ip": "::ffff:192.168.1.116",
-      "connectTime": "2024-04-20T21:41:35.398Z"
-    }
-  ]
+  "clients_connected": []
 }
