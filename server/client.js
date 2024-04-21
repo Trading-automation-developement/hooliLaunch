@@ -24,7 +24,7 @@ function getMacAddress() {
   return macAddress;
 }
 
-const serverIp = "192.168.1.116"; 
+const serverIp = "185.241.5.114"; 
 const serverUrl = `http://${serverIp}:3001`;
 const localFilePath = "C:/Users/noaam/OneDrive/Documents/NinjaTrader 8/outgoing/Globex_Source1_position.txt";
 
