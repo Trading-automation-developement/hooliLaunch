@@ -3,7 +3,29 @@ const cors = require("cors");
 const fs = require('fs');
 const socketIO = require('socket.io');
 const chokidar = require('chokidar');
-const path = require("path");
+const path = require("path"); 
+const { checkMacAddressExists } = require('./mongoDBService.js');
+const os = require('os');
+
+function getMacAddress() {
+  const networkInterfaces = os.networkInterfaces();
+  let macAddress = null;
+
+  // Loop through all network interfaces
+  Object.keys(networkInterfaces).forEach((interfaceName) => {
+    const networkInterface = networkInterfaces[interfaceName];
+    
+    // Loop through all addresses of the current interface
+    networkInterface.forEach((address) => {
+      // Check if the address is a MAC address and not internal or loopback
+      if (!address.internal && address.mac && address.mac !== '00:00:00:00:00:00') {
+        macAddress = address.mac;
+      }
+    });
+  });
+
+  return macAddress;
+}
 
 const app = express();
 const port = 3001;
@@ -19,27 +41,24 @@ app.get('/countConnectedClients', (req, res) => {
   res.json({ count: numberOfConnectedClients });
 });
 
-
 app.post('/updatePermissions', async (req, res) => {
-  const updatedPermissions = req.body; // Expected to be an object with { [index]: true/false }
+  const updatedPermissions = req.body; 
 
   try {
-    const settings = await getSettings();  // Load current settings
+    const settings = await getSettings();  
     const currentDestinations = await getDestinationsFromSettings();
 
-    // Update the allowed_destinations based on index received and whether it is allowed
     settings.allowed_destinations = Object.entries(updatedPermissions).reduce((acc, [index, isAllowed]) => {
-      if (isAllowed) {  // If tracking is allowed, add the destination name using the index
+      if (isAllowed) {  
         const destinationName = currentDestinations.destinations_tracking[parseInt(index)];
         if (destinationName) {
-          acc.push(destinationName); // Assuming destinationName is just a string
+          acc.push(destinationName); 
         }
       }
       return acc;
     }, []);
 
-    // Write the updated settings back to the settings.json
-    const settingsPath = path.join(__dirname, 'settings.json');
+    const settingsPath = path.join(__dirname, 'settings.json'); 
     fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf8', err => {
       if (err) {
         console.error('Failed to update settings.json:', err);
@@ -54,7 +73,6 @@ app.post('/updatePermissions', async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 app.get('/getDestinationsTracking', async (req, res) => {
   try {
@@ -72,7 +90,7 @@ async function initializeServer() {
     const settings = await getDestinationsFromSettings();
     console.log(`Destinations tracking loaded: ${settings.destinations_tracking}`);
 
-    const pathToWatch = "/home/noaa/Documents/NinjaTrader 8/outgoing/Globex_Source1_position.txt";
+    const pathToWatch = path.join(__dirname, "outgoing", "Globex_Source1_position.txt");
     const watcher = chokidar.watch(pathToWatch, { ignored: /(^|[\/\\])\../, persistent: true });
 
     const server = app.listen(port, () => {
@@ -86,7 +104,7 @@ async function initializeServer() {
       }
     });
 
-    io.on('connection', (socket) => {
+    io.on('connection', async (socket) => {
       const clientInfo = {
         socket: socket,
         ip: socket.request.connection.remoteAddress,
@@ -119,12 +137,26 @@ async function initializeServer() {
         updateSettingsWithClients(clients)
         console.log(`Total clients connected: ${Object.keys(clients).length}`);
       });
+
+      const macAddressToCheck = getMacAddress();
+      if (!macAddressToCheck) {
+          console.log('Failed to retrieve MAC address for client.');
+          return;
+      }
+      
+      const macAddressExists = await checkMacAddressExists(macAddressToCheck);
+      
+      if (!macAddressExists) {
+          console.log('Current MAC address does not exist in the database. Closing socket.');
+          socket.disconnect(true); 
+      }
     });
     
   } catch (error) {
     console.error('Failed to initialize the server:', error);
   }
 }
+
 app.get('/getDestinationsAllowTracking', async (req, res) => {
   try {
     const settings = await getDestinationsFromSettings();
@@ -135,6 +167,7 @@ app.get('/getDestinationsAllowTracking', async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve destinations tracking data" });
   }
 });
+
 async function getDestinationsFromSettings() {
   const settingsPath = path.join(__dirname, 'settings.json');
   return new Promise((resolve, reject) => {
@@ -154,6 +187,7 @@ async function getDestinationsFromSettings() {
     });
   });
 }
+
 async function updateSettingsWithClients(clients) {
   const settingsPath = path.join(__dirname, 'settings.json');
   const settings = await getSettings();
@@ -171,6 +205,7 @@ async function updateSettingsWithClients(clients) {
     console.log('Updated settings.json with current client info');
   });
 }
+
 async function getSettings() {
   const settingsPath = path.join(__dirname, 'settings.json');
   return new Promise((resolve, reject) => {
