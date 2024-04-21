@@ -58,8 +58,8 @@ async function initializeServer() {
     
       socket.emit('initialFileChanges', fileChangesTracking);
     
-      watcher.on('change', (path) => {
-        fs.readFile(path, 'utf8', (err, data) => {
+      watcher.on('change', (filePath) => {
+        fs.readFile(filePath, 'utf8', (err, data) => {
           if (err) {
             console.error('Error reading file:', err);
             return;
@@ -68,6 +68,8 @@ async function initializeServer() {
           io.emit('fileChange', data);
         });
       });
+      
+      
     
       socket.on('disconnect', () => {
         console.log(`Client disconnected: ${socket.id} from IP: ${clients[socket.id]?.ip}`);
