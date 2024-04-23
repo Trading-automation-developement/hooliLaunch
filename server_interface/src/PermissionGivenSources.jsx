@@ -6,7 +6,7 @@ const DataTable = () => {
   const [tracking, setTracking] = useState({});
   const [tableData, setTableData] = useState([]);
   const [clientCount, setClientCount] = useState(0);
-  const [newSourceName, setNewSourceName] = useState(''); // New state for the name of the new source
+  const [newSourceName, setNewSourceName] = useState(''); 
 
   useEffect(() => {
     const storedTrackingData = localStorage.getItem('trackingData');
@@ -25,7 +25,6 @@ const DataTable = () => {
     try {
       const response = await axios.get('http://localhost:3003/getDestinationsTracking');
       const destinations = response.data;
-      console.log('In the frontend part:', destinations);
       setTableData(destinations.map((destination, index) => ({
         id: index,
         name: destination  
@@ -52,12 +51,38 @@ const DataTable = () => {
     setTracking(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleAddSource = () => {
-    const newId = tableData.length;
-    setTableData([...tableData, { id: newId, name: newSourceName }]);
-    setTracking(prev => ({ ...prev, [newId]: false }));
-    setNewSourceName(''); // Reset input field after adding
+  const handleAddSource = async () => {
+    if (!newSourceName.trim()) {
+      alert('Source name cannot be empty');
+      return;
+    }
+    try {
+      const response = await axios.post('http://localhost:3003/addSource', { sourceName: newSourceName });
+      alert(response.data);
+      const newId = tableData.length;
+      setTableData([...tableData, { id: newId, name: newSourceName }]);
+      setTracking(prev => ({ ...prev, [newId]: false }));
+      setNewSourceName('');
+      fetchDestinationsToTracking();
+    } catch (error) {
+      console.error('Error adding source:', error.response ? error.response.data : error.message);
+      alert('Error adding source: ' + (error.response ? error.response.data : error.message));
+    }
   };
+
+const handleDeleteSource = async (sourceName, id) => {
+  try {
+    const response = await axios.delete(`http://localhost:3003/deleteSource?sourceName=${encodeURIComponent(sourceName)}`);
+    alert(response.data);
+    setTableData(prev => prev.filter(item => item.id !== id));
+    const newTracking = {...tracking};
+    delete newTracking[id];
+    setTracking(newTracking);
+  } catch (error) {
+    console.error('Error deleting source:', error.response ? error.response.data : error.message);
+    alert('Error deleting source: ' + (error.response ? error.response.data : error.message));
+  }
+};
 
   const handleSubmit = async () => {
     console.log('Permissions given for:', tracking);
@@ -81,6 +106,7 @@ const DataTable = () => {
           <tr>
             <th>Sources</th>
             <th>Allowed Tracking</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -93,6 +119,9 @@ const DataTable = () => {
                   checked={!!tracking[source.id]}
                   onChange={() => handleCheckboxChange(source.id)}
                 />
+              </td>
+              <td>
+                <button onClick={() => handleDeleteSource(source.name, source.id)}>Delete</button>
               </td>
             </tr>
           ))}

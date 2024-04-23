@@ -34,6 +34,35 @@ function getMacAddress() {
   return macAddress;
 }
 
+app.delete('/deleteSource', (req, res) => {
+  console.log('Inside the deleteSource endpoint in the server');
+  const sourceName = req.query.sourceName; 
+  if (!sourceName) {
+    return res.status(400).send('Source name is required');
+  }
+
+  fs.readFile('./settings.json', (err, data) => {
+    if (err) {
+      return res.status(500).send('Failed to read settings');
+    }
+
+    const settings = JSON.parse(data);
+    const index = settings.destinations_tracking.indexOf(sourceName);
+    if (index === -1) {
+      return res.status(404).send('Source not found');
+    }
+
+    settings.destinations_tracking.splice(index, 1);
+
+    fs.writeFile('./settings.json', JSON.stringify(settings, null, 2), (err) => {
+      if (err) {
+        return res.status(500).send('Failed to update settings');
+      }
+      res.send('Source deleted successfully');
+    });
+  });
+});
+
 
 
 app.post('/addSource', (req, res) => {
