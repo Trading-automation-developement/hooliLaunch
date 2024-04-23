@@ -5,7 +5,8 @@ import './permissionGivenSources.css';
 const DataTable = () => {
   const [tracking, setTracking] = useState({});
   const [tableData, setTableData] = useState([]);
-  const [clientCount, setClientCount] = useState(0);  // State to hold the count of connected clients
+  const [clientCount, setClientCount] = useState(0);
+  const [newSourceName, setNewSourceName] = useState(''); // New state for the name of the new source
 
   useEffect(() => {
     const storedTrackingData = localStorage.getItem('trackingData');
@@ -13,7 +14,7 @@ const DataTable = () => {
       setTracking(JSON.parse(storedTrackingData));
     }
     fetchDestinationsToTracking();
-    fetchClientCount(); // Fetch initial client count on mount
+    fetchClientCount();
   }, []);
 
   useEffect(() => {
@@ -24,7 +25,6 @@ const DataTable = () => {
     try {
       const response = await axios.get('http://localhost:3003/getDestinationsTracking');
       const destinations = response.data;
-      console.log(`${destinations}`)
       console.log('In the frontend part:', destinations);
       setTableData(destinations.map((destination, index) => ({
         id: index,
@@ -42,7 +42,7 @@ const DataTable = () => {
   const fetchClientCount = async () => {
     try {
       const response = await axios.get('http://localhost:3003/countConnectedClients');
-      setClientCount(response.data.count); // Assuming the endpoint returns an object with a count property
+      setClientCount(response.data.count);
     } catch (error) {
       console.error('Failed to fetch client count:', error);
     }
@@ -52,13 +52,20 @@ const DataTable = () => {
     setTracking(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const handleAddSource = () => {
+    const newId = tableData.length;
+    setTableData([...tableData, { id: newId, name: newSourceName }]);
+    setTracking(prev => ({ ...prev, [newId]: false }));
+    setNewSourceName(''); // Reset input field after adding
+  };
+
   const handleSubmit = async () => {
     console.log('Permissions given for:', tracking);
     try {
       const response = await axios.post('http://localhost:3003/updatePermissions', tracking);
       console.log('Permissions updated:', response.data);
       alert('Permissions successfully updated.');
-      fetchClientCount();  // Refresh the client count after permissions are updated
+      fetchClientCount();
     } catch (error) {
       console.error('Failed to update permissions:', error.response ? error.response.data : error.message);
       alert('Failed to update permissions.');
@@ -91,6 +98,15 @@ const DataTable = () => {
           ))}
         </tbody>
       </table>
+      <div>
+        <input
+          type="text"
+          value={newSourceName}
+          onChange={e => setNewSourceName(e.target.value)}
+          placeholder="Add new source name"
+        />
+        <button onClick={handleAddSource}>Add Source</button>
+      </div>
       <button className="button" onClick={handleSubmit}>Give Permissions!</button>
     </div>
   );
