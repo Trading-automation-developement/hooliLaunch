@@ -6,18 +6,25 @@ const chokidar = require('chokidar');
 const path = require("path"); 
 const { checkMacAddressExists } = require('./mongoDBService.js');
 const os = require('os');
+const app = express();
+
+
+const port = 3003;
+app.use(cors());
+app.use(express.json());
+let fileChangesTracking = [];
+let clients = {};  
+
+
 
 function getMacAddress() {
   const networkInterfaces = os.networkInterfaces();
   let macAddress = null;
 
-  // Loop through all network interfaces
   Object.keys(networkInterfaces).forEach((interfaceName) => {
     const networkInterface = networkInterfaces[interfaceName];
     
-    // Loop through all addresses of the current interface
     networkInterface.forEach((address) => {
-      // Check if the address is a MAC address and not internal or loopback
       if (!address.internal && address.mac && address.mac !== '00:00:00:00:00:00') {
         macAddress = address.mac;
       }
@@ -27,14 +34,38 @@ function getMacAddress() {
   return macAddress;
 }
 
-const app = express();
-const port = 3001;
 
-app.use(cors());
-app.use(express.json());
 
-let fileChangesTracking = [];
-let clients = {};  
+app.post('/addSource', (req, res) => {
+  console.log('Inside the addSource endpoint in the server code')
+  const { sourceName } = req.body;
+  if (!sourceName) {
+      return res.status(400).send('Source name is required');
+  }
+
+  fs.readFile('./settings.json', (err, data) => {
+      if (err) {
+          return res.status(500).send('Failed to read settings');
+      }
+
+      const settings = JSON.parse(data);
+      if (!settings.destinations_tracking) {
+          settings.destinations_tracking = [];
+      }
+      if (settings.destinations_tracking.includes(sourceName)) {
+          return res.status(409).send('Source already exists');
+      }
+
+      settings.destinations_tracking.push(sourceName);
+
+      fs.writeFile('./settings.json', JSON.stringify(settings, null, 2), (err) => {
+          if (err) {
+              return res.status(500).send('Failed to update settings');
+          }
+          res.send('Source added successfully');
+      });
+  });
+});
 
 app.get('/countConnectedClients', (req, res) => {
   const numberOfConnectedClients = Object.keys(clients).length; 
