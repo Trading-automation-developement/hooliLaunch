@@ -11,7 +11,7 @@ function ClientInterface() {
   useEffect(() => {
     const fetchAllowedDestinationsToTracking = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/getDestinationsAllowTracking');
+        const response = await axios.get('http://localhost:3003/getDestinationsAllowTracking');
         const destinationsAllowed = response.data;
         console.log('Fetched data:', destinationsAllowed);
         setTableData(destinationsAllowed.map((destination, index) => ({
@@ -29,8 +29,9 @@ function ClientInterface() {
 
   const fetchClientCount = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/countConnectedClients');
-      setClientCount(response.data.count); // Assuming the endpoint returns an object with a count property
+      const response = await axios.get('http://localhost:3003/countConnectedClients');
+      console.log(`${response.data.count}`)
+      setClientCount(response.data.count); 
     } catch (error) {
       console.error('Failed to fetch client count:', error);
     }

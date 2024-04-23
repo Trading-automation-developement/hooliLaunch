@@ -22,8 +22,9 @@ const DataTable = () => {
 
   const fetchDestinationsToTracking = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/getDestinationsTracking');
+      const response = await axios.get('http://localhost:3003/getDestinationsTracking');
       const destinations = response.data;
+      console.log(`${destinations}`)
       console.log('In the frontend part:', destinations);
       setTableData(destinations.map((destination, index) => ({
         id: index,
@@ -40,7 +41,7 @@ const DataTable = () => {
 
   const fetchClientCount = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/countConnectedClients');
+      const response = await axios.get('http://localhost:3003/countConnectedClients');
       setClientCount(response.data.count); // Assuming the endpoint returns an object with a count property
     } catch (error) {
       console.error('Failed to fetch client count:', error);
@@ -54,7 +55,7 @@ const DataTable = () => {
   const handleSubmit = async () => {
     console.log('Permissions given for:', tracking);
     try {
-      const response = await axios.post('http://localhost:3001/updatePermissions', tracking);
+      const response = await axios.post('http://localhost:3003/updatePermissions', tracking);
       console.log('Permissions updated:', response.data);
       alert('Permissions successfully updated.');
       fetchClientCount();  // Refresh the client count after permissions are updated
