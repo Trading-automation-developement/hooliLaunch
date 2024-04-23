@@ -66,6 +66,7 @@ const DataTable = () => {
 
   return (
     <div className="table-container">
+      <h1>Server Trade Copier Interface</h1>
       <div className="client-count">Current Connections: {clientCount}</div>
       <table className="table">
         <thead>
