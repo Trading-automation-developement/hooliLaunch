@@ -144,14 +144,49 @@ app.get('/getDestinationsTracking', async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve destinations tracking data" });
   }
 });
+ // Cross Platform Support
+ function getUserDocumentsPath() {
+  let homeDir = os.homedir();
+  let documentsPath;
 
+  switch (os.platform()) {
+      case 'win32': // Windows
+          documentsPath = path.join(homeDir, 'Documents');
+          break;
+      case 'darwin': // macOS
+          documentsPath = path.join(homeDir, 'Documents');
+          break;
+      case 'linux': // Linux
+          
+          documentsPath = path.join(homeDir, 'Documents');
+          break;
+      default:
+          throw new Error('Unsupported platform');
+  }
+
+  return documentsPath;
+}
 async function initializeServer() {
   try {
     const settings = await getDestinationsFromSettings();
     console.log(`Destinations tracking loaded: ${settings.destinations_tracking}`);
+    // Assuming each destination is a file name you want to watch
+    const filesToWatch = settings.destinations_tracking.map(name => 
+      path.join(getUserDocumentsPath(), "NinjaTrader 8", "outgoing", `Globex_${name}_position.txt`)
+    );
 
-    const pathToWatch = path.join(__dirname, "outgoing", "Globex_Source1_position.txt");
-    const watcher = chokidar.watch(pathToWatch, { ignored: /(^|[\/\\])\../, persistent: true });
+    console.log(`Files to watch: ${filesToWatch.join(", ")}`);
+    const watcher = chokidar.watch(filesToWatch, {
+      ignored: /(^|[\/\\])\../,
+      persistent: true
+    });
+
+    watcher
+        .on('add', path => console.log(`File ${path} has been added`))
+        .on('change', path => console.log(`File ${path} has been changed`))
+        .on('unlink', path => console.log(`File ${path} has been removed`))
+        .on('error', error => console.log(`Watcher error: ${error}`))
+        .on('ready', () => console.log('Initial scan complete. Ready for changes'));
 
     const server = app.listen(port, () => {
       console.log(`Server listening at http://localhost:${port}`);
@@ -189,12 +224,10 @@ async function initializeServer() {
         });
       });
       
-      
-    
       socket.on('disconnect', () => {
         console.log(`Client disconnected: ${socket.id} from IP: ${clients[socket.id]?.ip}`);
         delete clients[socket.id]; 
-        updateSettingsWithClients(clients)
+        updateSettingsWithClients(clients);
         console.log(`Total clients connected: ${Object.keys(clients).length}`);
       });
 
@@ -216,6 +249,91 @@ async function initializeServer() {
     console.error('Failed to initialize the server:', error);
   }
 }
+
+// async function initializeServer() {
+//   try {
+//     const settings = await getDestinationsFromSettings();
+//     console.log(`Destinations tracking loaded: ${settings.destinations_tracking}`);
+//     const sources_for_files = settings.destinations_tracking;
+
+//     const pathToWatch = path.join(getUserDocumentsPath(),"NinjaTrader 8", "outgoing", "Globex_Source1_position.txt");
+//     console.log(`The path to watch is ${pathToWatch}`)
+//     const watcher = chokidar.watch(pathToWatch, {
+//       ignored: /(^|[\/\\])\../,
+//       persistent: true
+//   });
+  
+//   watcher
+//       .on('add', path => console.log(`File ${path} has been added`))
+//       .on('change', path => console.log(`File ${path} has been changed`))
+//       .on('unlink', path => console.log(`File ${path} has been removed`))
+//       .on('error', error => console.log(`Watcher error: ${error}`))
+//       .on('ready', () => console.log('Initial scan complete. Ready for changes'));
+  
+
+//     const server = app.listen(port, () => {
+//       console.log(`Server listening at http://localhost:${port}`);
+//     });
+
+//     const io = socketIO(server, {
+//       cors: {
+//         origin: "*", 
+//         methods: ["GET", "POST"]
+//       }
+//     });
+
+//     io.on('connection', async (socket) => {
+//       const clientInfo = {
+//         socket: socket,
+//         ip: socket.request.connection.remoteAddress,
+//         connectTime: new Date()
+//       };
+//       clients[socket.id] = clientInfo;  
+//       updateSettingsWithClients(clients);
+//       console.log(`Client connected: ${socket.id} from IP: ${clientInfo.ip}`);
+//       updateSettingsWithClients(clients);
+//       console.log(`Total clients connected: ${Object.keys(clients).length}`);
+    
+//       socket.emit('initialFileChanges', fileChangesTracking);
+    
+//       watcher.on('change', (filePath) => {
+//         fs.readFile(filePath, 'utf8', (err, data) => {
+//           if (err) {
+//             console.error('Error reading file:', err);
+//             return;
+//           }
+//           fileChangesTracking.push(data);
+//           io.emit('fileChange', data);
+//         });
+//       });
+      
+      
+    
+//       socket.on('disconnect', () => {
+//         console.log(`Client disconnected: ${socket.id} from IP: ${clients[socket.id]?.ip}`);
+//         delete clients[socket.id]; 
+//         updateSettingsWithClients(clients)
+//         console.log(`Total clients connected: ${Object.keys(clients).length}`);
+//       });
+
+//       const macAddressToCheck = getMacAddress();
+//       if (!macAddressToCheck) {
+//           console.log('Failed to retrieve MAC address for client.');
+//           return;
+//       }
+      
+//       const macAddressExists = await checkMacAddressExists(macAddressToCheck);
+      
+//       if (!macAddressExists) {
+//           console.log('Current MAC address does not exist in the database. Closing socket.');
+//           socket.disconnect(true); 
+//       }
+//     });
+    
+//   } catch (error) {
+//     console.error('Failed to initialize the server:', error);
+//   }
+// }
 
 app.get('/getDestinationsAllowTracking', async (req, res) => {
   try {
