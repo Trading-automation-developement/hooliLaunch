@@ -146,25 +146,14 @@ app.get('/getDestinationsTracking', async (req, res) => {
 });
  // Cross Platform Support
  function getUserDocumentsPath() {
-  let homeDir = os.homedir();
-  let documentsPath;
-
-  switch (os.platform()) {
-      case 'win32': // Windows
-          documentsPath = path.join(homeDir, 'Documents');
-          break;
-      case 'darwin': // macOS
-          documentsPath = path.join(homeDir, 'Documents');
-          break;
-      case 'linux': // Linux
-          
-          documentsPath = path.join(homeDir, 'Documents');
-          break;
-      default:
-          throw new Error('Unsupported platform');
+  if (os.platform() !== 'win32') {
+      throw new Error('Unsupported platform');
   }
 
-  return documentsPath;
+  const homeDir = os.homedir();
+  const oneDrivePath = path.join(homeDir, 'OneDrive', 'Documents');
+  
+  return fs.existsSync(oneDrivePath) ? oneDrivePath : process.env.USERPROFILE || path.join(homeDir, 'Documents');
 }
 async function initializeServer() {
   try {
@@ -300,7 +289,7 @@ async function initializeServer() {
 //         fs.readFile(filePath, 'utf8', (err, data) => {
 //           if (err) {
 //             console.error('Error reading file:', err);
-//             return;
+//             return;F
 //           }
 //           fileChangesTracking.push(data);
 //           io.emit('fileChange', data);
