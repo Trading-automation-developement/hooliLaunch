@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 let fileChangesTracking = [];
 let clients = {};  
-
+let clientsUsernames = [];
 
 
 function getMacAddress() {
@@ -34,6 +34,23 @@ function getMacAddress() {
   return macAddress;
 }
 
+app.post('/submitUsername', (req, res) => {
+  console.log('Inside the submitusername endpoint in the server')
+  const { username } = req.body;
+
+  if (!username || username.trim() === '') {
+      return res.status(400).json({ message: 'Username is required and cannot be empty.' });
+  }
+
+
+  clientsUsernames.push(username);
+  console.log(`Current client usernames ${clientsUsernames}`)
+
+  console.log(`Received username: ${username}`);
+
+
+  res.status(200).json({ message: 'Username submitted successfully!' });
+});
 app.delete('/deleteSource', (req, res) => {
   console.log('Inside the deleteSource endpoint in the server');
   const sourceName = req.query.sourceName; 

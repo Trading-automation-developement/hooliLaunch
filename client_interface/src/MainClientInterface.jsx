@@ -7,30 +7,29 @@ function ClientInterface() {
   const [tableData, setTableData] = useState([]);
   const [selectedAccounts, setSelectedAccounts] = useState([]);
   const [clientCount, setClientCount] = useState(0);
+  const [username, setUsername] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchAllowedDestinationsToTracking = async () => {
-      try {
-        const response = await axios.get('http://localhost:3003/getDestinationsAllowTracking');
-        const destinationsAllowed = response.data;
-        console.log('Fetched data:', destinationsAllowed);
-        setTableData(destinationsAllowed.map((destination, index) => ({
-          id: index,
-          name: destination
-        })));
-      } catch (error) {
-        console.error('Failed to fetch destinations:', error.response ? error.response.data : error.message);
-      }
-    };
-
     fetchAllowedDestinationsToTracking();
     fetchClientCount(); // Fetch initial client count on mount
   }, []);
 
+  const fetchAllowedDestinationsToTracking = async () => {
+    try {
+      const response = await axios.get('http://localhost:3003/getDestinationsAllowTracking');
+      setTableData(response.data.map((destination, index) => ({
+        id: index,
+        name: destination
+      })));
+    } catch (error) {
+      console.error('Failed to fetch destinations:', error.response ? error.response.data : error.message);
+    }
+  };
+
   const fetchClientCount = async () => {
     try {
       const response = await axios.get('http://localhost:3003/countConnectedClients');
-      console.log(`${response.data.count}`);
       setClientCount(response.data.count);
     } catch (error) {
       console.error('Failed to fetch client count:', error);
@@ -38,29 +37,54 @@ function ClientInterface() {
   };
 
   const handleConnect = async () => {
+    if (username.trim() === '') {
+      alert('Please enter a username before connecting.');
+      return;
+    }
     setConnected(true);
     await fetchClientCount(); // Refresh the client count after connecting
     console.log('Connected to server!');
   };
 
   const handleCheckboxChange = (accountId) => {
-    setSelectedAccounts(prev => {
-      if (prev.includes(accountId)) {
-        return prev.filter(id => id !== accountId);
-      } else {
-        return [...prev, accountId];
-      }
-    });
+    setSelectedAccounts(prev => prev.includes(accountId) ? prev.filter(id => id !== accountId) : [...prev, accountId]);
+  };
+
+  const handleSubmitUsername = async () => {
+    if (!username.trim()) {
+      alert('Please enter a username.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await axios.post('http://localhost:3003/submitUsername', { username });
+      alert('Username submitted successfully!');
+      setSubmitting(false);
+    } catch (error) {
+      console.error('Error submitting username:', error);
+      alert('Failed to submit username.');
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="table-container">
       <h1>Client Trade Copier Interface</h1>
       <div className="client-count">Current Connections: {clientCount}</div>
+      <input
+        type="text"
+        placeholder="Enter your username"
+        value={username}
+        onChange={e => setUsername(e.target.value)}
+        className="username-input"
+      />
+      <button onClick={handleSubmitUsername} disabled={submitting} className="button">
+        {submitting ? 'Submitting...' : 'Submit Username'}
+      </button>
       <table className="table">
         <thead>
           <tr>
-            <th>Bag TO Track</th>
+            <th>Bag To Track</th>
             <th>Select</th>
           </tr>
         </thead>
