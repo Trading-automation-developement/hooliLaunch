@@ -166,7 +166,7 @@ let PrevFunction = {
     'Amount': 0
   };
       
-var buyofsell = (nameofAccount)=>{
+  var buyofsell = (nameofAccount)=>{
     fs.readFile(SettingsPath.replace(settings.source, nameofAccount), 'utf8', (err, OldFileData) => {
         if (err) {
           console.error(err);
@@ -194,13 +194,13 @@ var buyofsell = (nameofAccount)=>{
       amount = -amount ;
     }
     console.log("account name- ",nameofAccount, "action -", action, " amount- ",amount, "prev was -", PrevFunction, " current- ", Currentvalues)
-    const _path =  path.join(getUserDocumentsPath(), `NinjaTrader 8\\incoming\\oif.${uuidv4()}.txt`);
+    const path =  "C:\\Users\\Administrator\\Documents\\NinjaTrader 8\\incoming\\oif." +  uuidv4() + ".txt";
     const mrkt = "PLACE;"+nameofAccount+";<INS>;<ACT>;<QTY>;MARKET;<LIMIT>;;DAY;;;;";
     var ordr = mrkt.replace("<INS>","NQ 06-24").replace("<ACT>",action).replace("<QTY>",amount);
     if( data.includes("FLAT")){
        ordr = "CLOSEPOSITION;<ACCOUNT>;<INSTRUMENT>;;;;;;;;;;".replace("<ACCOUNT>",nameofAccount).replace("<INSTRUMENT>","NQ 06-24");
     }
-    fs.writeFileSync(_path,ordr);
+    fs.writeFileSync(path,ordr);
     //console.log("finally ", path,ordr)
   });
   
