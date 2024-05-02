@@ -20,10 +20,10 @@ const DataTable = () => {
   useEffect(() => {
     localStorage.setItem('trackingData', JSON.stringify(tracking));
   }, [tracking]);
-
+  const serverIp = "185.241.5.114";
   const fetchDestinationsToTracking = async () => {
     try {
-      const response = await axios.get('http://localhost:3003/getDestinationsTracking');
+      const response = await axios.get(`http://${serverIp}:3003/getDestinationsTracking`);
       const destinations = response.data;
       setTableData(destinations.map((destination, index) => ({
         id: index,
@@ -41,7 +41,7 @@ const DataTable = () => {
   const fetchClientCount = async () => {
     try {
       console.log('Inside the fetchClientCount ... ')
-      const response = await axios.get('http://localhost:3003/countConnectedClients');
+      const response = await axios.get(`http://${serverIp}:3003/countConnectedClients`);
       console.log(`Inside the fetchClientCount response.data = ${response.data}`)
       
       setClientCount(response.data.count);
@@ -60,7 +60,7 @@ const DataTable = () => {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:3003/addSource', { sourceName: newSourceName });
+      const response = await axios.post(`http://${serverIp}:3003/addSource`, { sourceName: newSourceName });
       alert(response.data);
       const newId = tableData.length;
       setTableData([...tableData, { id: newId, name: newSourceName }]);
@@ -75,7 +75,7 @@ const DataTable = () => {
 
   const handleDeleteSource = async (sourceName, id) => {
     try {
-      const response = await axios.delete(`http://localhost:3003/deleteSource?sourceName=${encodeURIComponent(sourceName)}`);
+      const response = await axios.delete(`http://${serverIp}:3003/deleteSource?sourceName=${encodeURIComponent(sourceName)}`);
       alert(response.data);
       setTableData(prev => prev.filter(item => item.id !== id));
       const newTracking = {...tracking};
@@ -90,7 +90,7 @@ const DataTable = () => {
   const handleSubmit = async () => {
     console.log('Permissions given for:', tracking);
     try {
-      const response = await axios.post('http://localhost:3003/updatePermissions', tracking);
+      const response = await axios.post(`http://${serverIp}:3003/updatePermissions`, tracking);
       console.log('Permissions updated:', response.data);
       alert('Permissions successfully updated.');
       fetchClientCount();
