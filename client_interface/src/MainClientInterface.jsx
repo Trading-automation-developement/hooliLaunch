@@ -9,9 +9,10 @@ function ClientInterface() {
   const [clientCount, setClientCount] = useState(0);
 
   useEffect(() => {
+    const serverIp = "185.241.5.114";
     const fetchAllowedDestinationsToTracking = async () => {
       try {
-        const response = await axios.get('http://localhost:3003/getDestinationsAllowTracking');
+        const response = await axios.get(`http://${serverIp}:3003/getDestinationsAllowTracking`);
         const destinationsAllowed = response.data;
         console.log('Fetched data:', destinationsAllowed);
         setTableData(destinationsAllowed.map((destination, index) => ({
@@ -29,7 +30,7 @@ function ClientInterface() {
 
   const fetchClientCount = async () => {
     try {
-      const response = await axios.get('http://localhost:3003/getConnectedClientsInfo');
+      const response = await axios.get(`http://${serverIp}:3003/getConnectedClientsInfo`);
       console.log(`${response.data.count}`);
       setClientCount(response.data.count);
     } catch (error) {
