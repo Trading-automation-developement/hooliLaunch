@@ -1,6 +1,20 @@
 {
+  "main": "main.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "electron": "electron .",
+    "package": "electron-packager . MyApp --platform=win32 --arch=x64 --out=dist --overwrite"
+  },
   "dependencies": {
     "chokidar": "^3.6.0",
-    "socket.io-client": "^4.7.5"
+    "socket.io-client": "^4.7.5",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3"
+  },
+  "devDependencies": {
+    "electron": "^31.0.1",
+    "electron-packager": "^17.1.2"
   }
 }
