@@ -14,6 +14,9 @@ function createWindow() {
 
   mainWindow.loadURL(`file://${path.join(__dirname, 'build', 'index.html')}`);
 
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.webContents.openDevTools();
+  }
   mainWindow.on('closed', function () {
     mainWindow = null;
   });
