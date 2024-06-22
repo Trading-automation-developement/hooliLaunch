@@ -12,13 +12,13 @@ function createWindow() {
     },
   });
 
+  // Adjust the path to the correct location of the index.html file
+  mainWindow.loadURL(`file://${path.join(__dirname, 'client_interface', 'public', 'index.html')}`);
 
-  mainWindow.loadURL(`file://${path.join(__dirname, 'build', 'index.html')}`);
-
+  // Open the DevTools in development mode.
   
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
-  }
+  mainWindow.webContents.openDevTools();
+  
 
   mainWindow.on('closed', function () {
     mainWindow = null;
