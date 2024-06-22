@@ -1,5 +1,3 @@
-
-
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
@@ -8,15 +6,20 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      enableRemoteModule: false,
+      nodeIntegration: false,
     },
   });
 
+
   mainWindow.loadURL(`file://${path.join(__dirname, 'build', 'index.html')}`);
 
+  
   if (process.env.NODE_ENV === 'development') {
     mainWindow.webContents.openDevTools();
   }
+
   mainWindow.on('closed', function () {
     mainWindow = null;
   });
