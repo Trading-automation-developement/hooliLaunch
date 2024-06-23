@@ -2,7 +2,7 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  let mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -12,13 +12,10 @@ function createWindow() {
     },
   });
 
-  // Adjust the path to the correct location of the index.html file
   mainWindow.loadURL(`file://${path.join(__dirname, 'client_interface', 'public', 'index.html')}`);
 
-  // Open the DevTools in development mode.
-  
+ 
   mainWindow.webContents.openDevTools();
-  
 
   mainWindow.on('closed', function () {
     mainWindow = null;
