@@ -2,7 +2,7 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure the cache directory exists
+
 const cacheDir = path.join(app.getPath('userData'), 'cache');
 if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir);
@@ -17,13 +17,24 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       enableRemoteModule: false,
-      nodeIntegration: false,
+      nodeIntegration: true, 
+      preload: path.join(__dirname, './preload.js')  
     },
   });
 
-  mainWindow.loadURL(`file://${path.join(__dirname, 'client_interface', 'public', 'index.html')}`);
+  const indexPath = path.join(__dirname, 'client_interface', 'build', 'index.html');
+  console.log(`Loading URL: file://${indexPath}`);
+  
+  if (fs.existsSync(indexPath)) {
+    console.log('index.html file exists.');
+  } else {
+    console.log('index.html file does not exist.');
+  }
 
-  mainWindow.webContents.openDevTools();
+  mainWindow.loadURL(`file://${indexPath}`);
+
+  // Open DevTools to check for errors
+ // mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', function () {
     mainWindow = null;
