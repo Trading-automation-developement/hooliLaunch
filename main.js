@@ -1,5 +1,14 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure the cache directory exists
+const cacheDir = path.join(app.getPath('userData'), 'cache');
+if (!fs.existsSync(cacheDir)) {
+  fs.mkdirSync(cacheDir);
+}
+
+app.commandLine.appendSwitch('disk-cache-dir', cacheDir);
 
 function createWindow() {
   let mainWindow = new BrowserWindow({
@@ -14,7 +23,6 @@ function createWindow() {
 
   mainWindow.loadURL(`file://${path.join(__dirname, 'client_interface', 'public', 'index.html')}`);
 
- 
   mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', function () {
