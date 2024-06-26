@@ -17,14 +17,14 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       enableRemoteModule: false,
-      nodeIntegration: true, 
+      nodeIntegration: true,
       preload: path.join(__dirname, './preload.js')  
     },
   });
 
   const indexPath = path.join(__dirname, 'client_interface', 'build', 'index.html');
   console.log(`Loading URL: file://${indexPath}`);
-  
+ 
   if (fs.existsSync(indexPath)) {
     console.log('index.html file exists.');
   } else {
@@ -52,3 +52,4 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
+
