@@ -34,6 +34,25 @@ const homedir = os.homedir();
 const localFilePath = path.join(homedir, 'Documents', `NinjaTrader 8/outgoing/NQ 06-24 Globex_Sim101_position.txt`);
 console.log(`Connecting to server at: ${serverUrl}`);
 const socket = io(serverUrl);
+let reconnectionAttempts = 0;
+const MAX_RECONNECTION_ATTEMPTS = 5;
+
+function connectWithRetry(){
+  if(reconnectionAttempts >= MAX_RECONNECTION_ATTEMPTS){
+    console.log("Max reconnection attempts reached. Exiting...");
+    return;
+  }
+  socket.connect();
+}
+
+
+socket.on('connect_error', (error) => {
+  console.log('Connection error:', error.message);
+  reconnectionAttempts++;
+  console.log(`Reconnection attempt ${reconnectionAttempts} of ${MAX_RECONNECTION_ATTEMPTS}`);
+  setTimeout(connectWithRetry, 5000); // Waiting five seconds before trying to reconnect
+});
+
 
 socket.on('connect', async () => {
     console.log('Connected to server');
