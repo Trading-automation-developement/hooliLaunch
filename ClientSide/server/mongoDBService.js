@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const uri = "mongodb+srv://ninjaBroadcast:uLv8vKDHER6CvHG8@cluster0.khjrocu.mongodb.net/NinjaTraderApp";
 
 // Connect to MongoDB
-mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(uri)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => {
         console.error("Could not connect to MongoDB:");

@@ -1,22 +1,51 @@
 {
+  "main": "main.js",
   "name": "react-node-template",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "start": "cd server && npm install && npm start",
-    "prod": "concurrently  \"cd server && npm start\" \"cd client && npm start\"",
-    "startServer": "cd server && npm install && npm start ",
+    "prod": "concurrently \"cd server && npm start\" \"cd client && npm start\"",
+    "startServer": "cd server && npm install && npm start",
     "startClient": "cd client && npm start",
     "dev": "concurrently \"cd src/server && nodemon\" \"cd src/client && npm start\"",
     "logs": "heroku logs -t",
-    "heroku-postbuild": "cd src/client && npm install && npm run build"
+    "heroku-postbuild": "cd src/client && npm install && npm run build",
+    "dist": "electron-packager . clientHooliLauncher --platform=win32 --arch=x64 --out=dist --overwrite --ignore='**/*.dll'",
+    "package-win": "electron-packager . ClientApp --platform=win32 --arch=x64 --out=dist --overwrite --ignore='**/ffmpeg*' --ignore='node_modules/ffmpeg-static/**'",
+    "build-win": "electron-builder --win --x64"
   },
   "dependencies": {
     "concurrently": "^8.2.2",
-    "express": "^4.19.2"
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "mongoose": "^8.7.1",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
+    "uuid": "^10.0.0"
   },
   "engines": {
     "node": ">=12.16.1",
     "npm": ">=6.13.4"
+  },
+  "devDependencies": {
+    "electron": "^20.3.10",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.example.clientapp",
+    "productName": "ClientApp",
+    "files": [
+      "**/*",
+      "!node_modules/ffmpeg-static/**",
+      "!**/*.dll"
+    ],
+    "asar": true,
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    }
   }
 }
