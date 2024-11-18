@@ -25,9 +25,9 @@ function App() {
         });
 
         socketRemoteServer = io('http://83.229.81.169:2666', {
-            transports: ['polling', 'websocket'],  // CORRECT
+            transports: ['websocket'],
             reconnection: true,
-            reconnectionAttempts: 5,
+            reconnectionAttempts: 10,
             reconnectionDelay: 1000,
             query: { EIO: "3" }
         });
