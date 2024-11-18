@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 LOCAL_MEMORY={
-  "destinations": [["Bar2","Sim101"], ["Omer","Sim102"]],
+  "destinations": [["Bar","Sim101"], ["Omer","Sim102"]],
   "ComputerWindowsPAth": "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\outgoing\\",  
 }
 
@@ -48,9 +48,13 @@ socket.on('AddDestination', (value, val2) => {
 socket.on('TradeNow', (data) => {
   console.log('TradeNow', data["d"], data["INS"],data["trader"], new Date(), Currentvalues);
   for(var key in LOCAL_MEMORY.destinations ){
-    if(data["trader"]==LOCAL_MEMORY.destinations[key][0])
+    if(data["trader"]==LOCAL_MEMORY.destinations[key][0]){
+      console.log("->",LOCAL_MEMORY.destinations[key][0]);
     console.log("Copy same trade to -",LOCAL_MEMORY.destinations[key][0] )
     FuctionForTrade(data["d"], LOCAL_MEMORY.destinations[key][1], data["INS"])
+    }else{
+      console.log("no for ",LOCAL_MEMORY.destinations[key][0]);
+    }
   }
   console.log('Finish Trade', PrevFunction, Currentvalues);
   console.log('------------------------------------------------------------');
