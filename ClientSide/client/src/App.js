@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
+
+let socket = null;
+let socketRemoteServer = null;
 
 function App() {
     const [list, setlist] = useState([["Bar","Sim101"], ["Omer","Sim102"]]);
@@ -14,58 +18,80 @@ function App() {
     ];
 
     useEffect(() => {
-        let retryCount = 0;
-        const maxRetries = 5;
-        const retryInterval = 2000; // 2 seconds
+        socket = io("http://127.0.0.1:2222", {
+            transports: ['polling','websocket'],
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000
+        });
 
-        const checkConnection = async () => {
-            try {
-                const response = await fetch('http://127.0.0.1:2222', {
-                    method: 'GET',
-                    mode: 'no-cors'
-                });
-                setLocalConnected(true);
-                setConnectionStatus('connected');
-                retryCount = 0; // Reset retry count on successful connection
-            } catch (error) {
-                console.log('Connection attempt failed:', error);
-                retryCount++;
+        socketRemoteServer = io('http://83.229.81.169:2666', {
+            transports: ['websocket', 'polling'],
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000
+        });
 
-                if (retryCount < maxRetries) {
-                    setConnectionStatus(`retrying (${retryCount}/${maxRetries})`);
-                    setTimeout(checkConnection, retryInterval);
-                } else {
-                    setConnectionStatus('failed');
-                    setLocalConnected(false);
-                }
+        socket.on('connect', () => {
+            console.log('Local server connected');
+            setLocalConnected(true);
+            setConnectionStatus('connected');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Local server disconnected');
+            setLocalConnected(false);
+            setConnectionStatus('failed');
+        });
+
+        socket.on('connect_error', () => {
+            console.log('Local server connection error');
+            setLocalConnected(false);
+            setConnectionStatus('failed');
+        });
+
+        socketRemoteServer.on('connect', () => {
+            console.log('Remote server connected');
+            setRemoteConnected(true);
+        });
+
+        socketRemoteServer.on('disconnect', () => {
+            console.log('Remote server disconnected');
+            setRemoteConnected(false);
+        });
+
+        socketRemoteServer.on('NewTrade', (data) => {
+            console.log("NewTrade", data);
+            if (socket?.connected) {
+                socket.emit('TradeNow', data);
             }
+        });
 
-            try {
-                const remoteResponse = await fetch('http://83.229.81.169:2666', {
-                    method: 'GET',
-                    mode: 'no-cors'
-                });
-                setRemoteConnected(true);
-            } catch {
-                setRemoteConnected(false);
+        socket.on('SendAllData', (AllData) => {
+            console.log('Received data:', AllData);
+            if (AllData?.destinations) {
+                setlist(AllData.destinations);
             }
+        });
+
+        return () => {
+            if (socket) socket.disconnect();
+            if (socketRemoteServer) socketRemoteServer.disconnect();
         };
-
-        checkConnection();
-        const interval = setInterval(checkConnection, 5000);
-        return () => clearInterval(interval);
     }, []);
 
     const handleAddAccount = () => {
-        if (selectedTrader && destination) {
+        if (selectedTrader && destination && socket?.connected) {
             setlist([...list, [selectedTrader, destination]]);
+            socket.emit('AddDestination', destination, selectedTrader);
             setDestination("");
             setSelectedTrader("");
         }
     };
 
     const handleDeleteAccount = (row) => {
-        setlist(list.filter(item => !(item[0] === row[0] && item[1] === row[1])));
+        if (socket?.connected) {
+            setlist(list.filter(item => !(item[0] === row[0] && item[1] === row[1])));
+            socket.emit('DeleteDestination', row);
+        }
     };
 
     const getStatusColor = (status) => {
@@ -132,7 +158,6 @@ function App() {
                 </div>
             </div>
 
-            {/* Rest of your component */}
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                 <thead>
                 <tr>

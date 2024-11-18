@@ -21,7 +21,6 @@ LOCAL_MEMORY={
   "ComputerWindowsPAth": "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\outgoing\\",  
 }
 
-const SettingsPath = `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source}_position.txt`;
 
 io.on('connection', (socket) => {
   //console.log('Client connected -CLIENT SERVER SIDE',LOCAL_MEMORY.destinations, socket.handshake.headers.host );
