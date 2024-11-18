@@ -19,9 +19,9 @@ var fsTimeout;
 LOCAL_MEMORY={
 "couter":0,
 "trader1":"Bar",
-"source1": "sim101",
+"source1": "SimBar",
 "trader2":"Omer",
-"source2":"Sim102",
+"source2":"SimOmer",
   "destinations": [
     "Sim102"
   ],
@@ -66,7 +66,7 @@ var connected = new Set([]);
 
 
 // try{
-//   PATHS.forEach(element => {
+//   PATH_Trader1.forEach(element => {
 //     fs.writeFile(element, "", function (err) {
 //       if (err) throw err;
 //       console.log("It's saved!");
@@ -120,8 +120,8 @@ Object.values(io.sockets.connected).forEach(socket => {
 
 fs.watch(SettingsPathNQ,(event, filename)=>{
     fs.readFile(SettingsPathNQ, 'utf8', (err, data) => {
-    console.log(data)
-    if (!fsTimeout & data) {
+    console.log("fs ",data, fsTimeout)
+    if (data) {
       var myObject = {
         d: data.trim(),
         INS:"NQ 12-24",
@@ -129,7 +129,7 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
     }
       console.log("emit NQ " , myObject)
       io.sockets.emit("NewTrade", myObject)
-      fsTimeout = setTimeout(function() { fsTimeout=null }, 100) 
+      fsTimeout = setTimeout(function() { fsTimeout=null }, 2000) 
   }else{
     console.log("not ok NQ")
   }
@@ -152,8 +152,8 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
   fs.watch(SettingsPathES,(event, filename)=>{
     fs.readFile(SettingsPathES, 'utf8', (err, data) => {
     
-      console.log(data)
-      if (!fsTimeout & data!='') {
+      console.log("fs ",data)
+      if (data) {
         var myObject = {
           d: data.trim(),
           INS:"ES 12-24",
@@ -161,7 +161,7 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
         }
       console.log("emit ES " , myObject)
      io.sockets.emit("NewTrade", myObject)
-      fsTimeout = setTimeout(function() { fsTimeout=null }, 1000) 
+      fsTimeout = setTimeout(function() { fsTimeout=null }, 100) 
   }else{
     console.log("not ok ES")
   }
@@ -174,8 +174,8 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
   fs.watch(SettingsPathMNQ,(event, filename)=>{
     fs.readFile(SettingsPathMNQ, 'utf8', (err, data) => {
     
-      console.log(data)
-      if (!fsTimeout & data!='') {
+      console.log("fs ",data)
+      if (data) {
         var myObject = {
           d: data.trim(),
           INS:"MNQ 12-24",
@@ -196,8 +196,8 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
   fs.watch(SettingsPathMES,(event, filename)=>{
     fs.readFile(SettingsPathMES, 'utf8', (err, data) => {
     
-      console.log(data)
-      if (!fsTimeout & data!='') {
+      console.log("fs ",data)
+      if (data) {
         var myObject = {
           d: data.trim(),
           INS:"MES 12-24",
@@ -205,7 +205,7 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
         }
       console.log("emit MES " , myObject)
      io.sockets.emit("NewTrade", myObject)
-      fsTimeout = setTimeout(function() { fsTimeout=null }, 200) 
+      fsTimeout = setTimeout(function() { fsTimeout=null }, 100) 
   }else{
     console.log("not ok MES")
   }
@@ -221,9 +221,9 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
 
 
   fs.watch(SettingsPathNQ2,(event, filename)=>{
-    fs.readFile(SettingsPathNQ, 'utf8', (err, data) => {
+    fs.readFile(SettingsPathNQ2, 'utf8', (err, data) => {
     console.log(data)
-    if (!fsTimeout & data) {
+    if (data) {
       var myObject = {
         d: data.trim(),
         INS:"NQ 12-24",
@@ -252,10 +252,10 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
   });  
 
   fs.watch(SettingsPathES2,(event, filename)=>{
-    fs.readFile(SettingsPathES, 'utf8', (err, data) => {
+    fs.readFile(SettingsPathES2, 'utf8', (err, data) => {
     
       console.log(data)
-      if (!fsTimeout & data!='') {
+      if (data) {
         var myObject = {
           d: data.trim(),
           INS:"ES 12-24",
@@ -274,10 +274,10 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
   }); 
   
   fs.watch(SettingsPathMNQ2,(event, filename)=>{
-    fs.readFile(SettingsPathMNQ, 'utf8', (err, data) => {
+    fs.readFile(SettingsPathMNQ2, 'utf8', (err, data) => {
     
       console.log(data)
-      if (!fsTimeout & data!='') {
+      if (data) {
         var myObject = {
           d: data.trim(),
           INS:"MNQ 12-24",
@@ -296,10 +296,10 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
   }); 
   
   fs.watch(SettingsPathMES2,(event, filename)=>{
-    fs.readFile(SettingsPathMES, 'utf8', (err, data) => {
+    fs.readFile(SettingsPathMES2, 'utf8', (err, data) => {
     
       console.log(data)
-      if (!fsTimeout & data!='') {
+      if (data) {
         var myObject = {
           d: data.trim(),
           INS:"MES 12-24",
