@@ -58,8 +58,8 @@ function App() {
             setRemoteConnected(false);
         });
 
-        socketRemoteServer.on('NewTrade', (data) => {
-            console.log("NewTrade", data);
+        socketRemoteServer.on('TradeNow', (data) => {
+            console.log("TradeNow", data);
             if (socket?.connected) {
                 socket.emit('TradeNow', data);
             }
