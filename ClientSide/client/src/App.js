@@ -25,10 +25,13 @@ function App() {
         });
 
         socketRemoteServer = io('http://83.229.81.169:2666', {
-            transports: ['websocket', 'polling'],
+            transports: ['polling', 'websocket'],  // CORRECT
+            reconnection: true,
             reconnectionAttempts: 5,
-            reconnectionDelay: 1000
+            reconnectionDelay: 1000,
+            query: { EIO: "3" }
         });
+
 
         socket.on('connect', () => {
             console.log('Local server connected');
