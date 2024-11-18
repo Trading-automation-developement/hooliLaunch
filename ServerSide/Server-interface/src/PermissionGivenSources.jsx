@@ -2,29 +2,40 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client'; 
 
-let socket = null;
+var socket = null;
 const DataTable = () => {
-  const serverIP = "185.241.5.114";
+  const serverIP = "83.229.81.169";
   const serverPort = 2666;
   const [source, setSource] = useState("Sim101"); 
+  socket = io("ws://127.0.0.1:2666");
+
+
+
+  // useEffect(() => {
+    
+  //   socket.on('SendAllData', (AllData) => {
+  //     setSource(AllData.source);
+
+  //     console.log("SendAllData",AllData )
+  //   });
+  //   return () => socket.off('disconnect', () => {})
+  // }, []);
 
   // after component mount...
   useEffect(() => {
-    // connect to the socket server
-    socket = io('ws://127.0.0.1:2666');
-  
-
-    socket.on('SendAllData', (AllData) => {
-      setSource(AllData.source);
-
-      //console.log("All data ",AllData )
-    });
+    console.log("use effect" )
     
-  }, []);
+    // socket.on('SendAllData', (AllData) => {
+    //   setSource(AllData.source);
+    //   console.log("SendAllData" )
+    // });
+    
+  }, [source]);
 
   const handleUpdateSource = async (value) => {
+    console.log("handleUpdateSource" , source)
     setSource(source);
-    socket.emit('UpdateSource', source);
+    //socket.emit('UpdateSource', source);
   };
 
   return (

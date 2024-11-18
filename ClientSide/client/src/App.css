@@ -1,6 +1,9 @@
 .App {
   text-align: center;
 }
+.mySelect__value-container{
+  width: 15px;
+ }
 
 .App-logo {
   height: 40vmin;
@@ -36,3 +39,5 @@
     transform: rotate(360deg);
   }
 }
+
+.mySelect__value-container:first-child

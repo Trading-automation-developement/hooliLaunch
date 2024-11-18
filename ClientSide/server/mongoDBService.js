@@ -60,7 +60,7 @@ async function checkMacAddressExists(inputMacAddress) {
 }
 
 
-fetchMacAddresses();
-checkMacAddressExists('00:50:56:3f:ee:07');
+//fetchMacAddresses();
+//checkMacAddressExists('00:50:56:3f:ee:07');
 
 module.exports = { fetchMacAddresses, checkMacAddressExists };

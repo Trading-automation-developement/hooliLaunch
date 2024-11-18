@@ -17,23 +17,15 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 LOCAL_MEMORY={
-  "destinations": [
-    "Sim102",
-  ],
-  "server_ip": "185.241.5.114",
-  "allowed_clients": [],
-  
-  "clients_connected": [],
-  "client_destinations": [
-  ],
+  "destinations": [["Bar2","Sim101"], ["Omer","Sim102"]],
   "ComputerWindowsPAth": "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\outgoing\\",  
 }
 
-const SettingsPath = `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 06-24 Globex_${LOCAL_MEMORY.source}_position.txt`;
+const SettingsPath = `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source}_position.txt`;
 
 io.on('connection', (socket) => {
-  console.log('Client connected -CLIENT SERVER SIDE',LOCAL_MEMORY.destinations );
-  socket.emit("SendAllData", LOCAL_MEMORY)
+  //console.log('Client connected -CLIENT SERVER SIDE',LOCAL_MEMORY.destinations, socket.handshake.headers.host );
+  socket.emit("SendAllData", LOCAL_MEMORY.destinations)
 
   socket.on('disconnect', () => {
       console.log('Client disconnected');
@@ -41,74 +33,168 @@ io.on('connection', (socket) => {
 
 socket.on('DeleteDestination', (value) => {
   console.log('Server DeleteDestination', value);
-  LOCAL_MEMORY.destinations = LOCAL_MEMORY.destinations.filter(item => item !== value);
+  LOCAL_MEMORY.destinations = LOCAL_MEMORY.destinations.filter(  item => !(item[0] === value[0] && item[1] === value[1])
+);
   console.log("new Local memory", LOCAL_MEMORY)
 });
-socket.on('AddDestination', (value) => {
-  LOCAL_MEMORY.destinations.push(value);
+socket.on('AddDestination', (value, val2) => {
+  console.log("AddDestination", value, val2)
+  LOCAL_MEMORY.destinations.push([val2,value]);
   console.log('Server UpdateDestination', LOCAL_MEMORY.destinations);
+  socket.emit("SendAllData", LOCAL_MEMORY.destinations)
+
 });
 
 socket.on('TradeNow', (data) => {
-  console.log('TradeNow', data, new Date());
+  console.log('TradeNow', data["d"], data["INS"],data["trader"], new Date(), Currentvalues);
   for(var key in LOCAL_MEMORY.destinations ){
-    console.log("Copy same trade to -",LOCAL_MEMORY.destinations[key] )
-    FuctionForTrade(data, LOCAL_MEMORY.destinations[key])
+    if(data["trader"]==LOCAL_MEMORY.destinations[key][0])
+    console.log("Copy same trade to -",LOCAL_MEMORY.destinations[key][0] )
+    FuctionForTrade(data["d"], LOCAL_MEMORY.destinations[key][1], data["INS"])
   }
-  console.log('Finish Trade');
+  console.log('Finish Trade', PrevFunction, Currentvalues);
+  console.log('------------------------------------------------------------');
 });
 });
 
+
 let Currentvalues = {};
+var dateOfLastTrade=new Date();
 let PrevFunction = {
+  "MNQ 12-24":{
+
+    "Sim102":{
+        'action': "FLAT",
+        'Amount': 0
+    },
+    "Sim103":{
+      'action': "FLAT",
+      'Amount': 0
+  },
+},
+"NQ 12-24":{
+
   "Sim102":{
       'action': "FLAT",
       'Amount': 0
   },
-  "Sim101":{
+  "Sim103":{
     'action': "FLAT",
     'Amount': 0
-  }
+},
+},
+"MES 12-24":{
+  "APEX-36565-26":{
+    'action': "FLAT",
+    'Amount': 0
+},
+
+  "Sim102":{
+      'action': "FLAT",
+      'Amount': 0
+  },
+  "Sim103":{
+    'action': "FLAT",
+    'Amount': 0
+},
+"Sim104":{
+  'action': "FLAT",
+  'Amount': 0
+},
+},
+"ES 12-24":{
+  "Sim102":{
+      'action': "FLAT",
+      'Amount': 0
+  },
+  "Sim103":{
+    'action': "FLAT",
+    'Amount': 0
+},
+"Sim104":{
+  'action': "FLAT",
+  'Amount': 0
+},
+}
+
 };
 
-var dateOfLastTrade=new Date();
-const FuctionForTrade=(order, nameofAccount)=>{
+const FuctionForTrade=(order, nameofAccount,INS)=>{
   var newDate= new Date();
 
-  if(newDate - dateOfLastTrade< 2000)
-    {
-      console.log("stopppppppppppppppppppppppppppppp")
-      return
+  // if(newDate - dateOfLastTrade< 2000)
+  //   {
+  //     console.log("stopppppppppppppppppppppppppppppp")
+  //     return
+  //   }
+  try{
+
+    console.log("FuctionForTrade",order, nameofAccount,INS )
+    const path =  "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\incoming\\oif." +  uuidv4() + ".txt";
+    const mrkt = "PLACE;"+nameofAccount+";<INS>;<ACT>;<QTY>;MARKET;<LIMIT>;;DAY;;;;";
+    var ordr;
+
+  var updated_ins=INS;
+  if(updated_ins.includes("SEP24")){
+    updated_ins = updated_ins.replace("SEP24", "12-24")
+    console.log("new ins is", updated_ins)
+  }
+
+  if(updated_ins.includes("DEC24")){
+    updated_ins = updated_ins.replace("DEC24", "12-24")
+    console.log("new ins is", updated_ins)
+  }
+
+    if(!PrevFunction[updated_ins].hasOwnProperty(nameofAccount)){
+      console.log("INS", INS, nameofAccount, "NOT IN PREV")
+
+      PrevFunction[updated_ins][nameofAccount] = {
+        'action': "FLAT",
+        'Amount': 0
+    };
+      console.log("new prev", PrevFunction)
+
     }
-  
-  Currentvalues['action'] =returnAction(order)
-  Currentvalues['Amount'] = returnAmount(order)
-  console.log("--> ",PrevFunction, Currentvalues)
+
+    Currentvalues['action'] =returnAction(order)
+    Currentvalues['Amount'] = returnAmount(order)
+
+
+    if( Currentvalues['action']==("FLAT")){
+      ordr = "CLOSEPOSITION;<ACCOUNT>;<INSTRUMENT>;;;;;;;;;;".replace("<ACCOUNT>",nameofAccount).replace("<INSTRUMENT>",updated_ins);
+      console.log("ordr ", ordr);
+      fs.writeFileSync(path,ordr);
+      PrevFunction[updated_ins][nameofAccount]['action'] = Currentvalues['action']
+      PrevFunction[updated_ins][nameofAccount]['Amount'] = parseInt(Currentvalues['Amount'])
+      console.log("FLAT", updated_ins, nameofAccount, PrevFunction[updated_ins][nameofAccount])
+      dateOfLastTrade= newDate;
+      return null;
+    }
+
+ 
+  //console.log("--> ",INS,PrevFunction[INS], Currentvalues)
 
   var action= Currentvalues["action"];
-  var amount= parseInt(Currentvalues['Amount'])-  PrevFunction[nameofAccount]['Amount'];
+  var amount= parseInt(Currentvalues['Amount'])-  PrevFunction[updated_ins][nameofAccount]['Amount'];
 
-  if (parseInt(Currentvalues['Amount']) - PrevFunction[nameofAccount]["Amount"] < 0){
-    
+  if (parseInt(Currentvalues['Amount']) - PrevFunction[updated_ins][nameofAccount]["Amount"] < 0){
+   
     action = action.includes("BUY") ? "SELL" : "BUY";
     amount = -amount ;
   }
-
-  const path =  "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\incoming\\oif." +  uuidv4() + ".txt";
-  const mrkt = "PLACE;"+nameofAccount+";<INS>;<ACT>;<QTY>;MARKET;<LIMIT>;;DAY;;;;";
-  var ordr = mrkt.replace("<INS>","NQ 09-24").replace("<ACT>",action).replace("<QTY>",amount);
-  if( Currentvalues['action'].includes("FLAT")){
-     ordr = "CLOSEPOSITION;<ACCOUNT>;<INSTRUMENT>;;;;;;;;;;".replace("<ACCOUNT>",nameofAccount).replace("<INSTRUMENT>","NQ 09-24");
-  }
-  //console.log("amount ", amount)
- // console.log("path ", path);
- // console.log("ord ", ordr);
+ 
+  ordr = mrkt.replace("<INS>",updated_ins).replace("<ACT>",action).replace("<QTY>",amount);
   fs.writeFileSync(path,ordr);
-  PrevFunction[nameofAccount]['action'] = Currentvalues['action']
-  PrevFunction[nameofAccount]['Amount'] = parseInt(Currentvalues['Amount'])
+  PrevFunction[updated_ins][nameofAccount]['action'] = Currentvalues['action']
+  PrevFunction[updated_ins][nameofAccount]['Amount'] = parseInt(Currentvalues['Amount'])
 
   dateOfLastTrade= newDate;
   return null;
+}catch (error) {
+  console.error("error", error);
+  // Expected output: ReferenceError: nonExistentFunction is not defined
+  // (Note: the exact output may be browser-dependent)
+}
 }
 
 const returnAction = (data) => {  
@@ -118,3 +204,4 @@ return data.includes('FLAT')? 'FLAT' :(data.includes('LONG') ? 'BUY': 'SELL');
 const returnAmount = (data) => {
 return data.split(';')[1];
 };
+

@@ -1,9 +1,21 @@
 {
+  "main": "main.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "electron": "electron .",
+    "package": "electron-packager . HooliLaunch --platform=win32 --arch=x64 --out=dist --overwrite"
+  },
   "dependencies": {
     "chokidar": "^3.6.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
-    "electron": "^30.0.3"
+    "electron": "^31.0.1",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2"
   }
 }

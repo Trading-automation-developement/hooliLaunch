@@ -1,56 +1,80 @@
 import React, {useState, useEffect} from 'react';
 import io from 'socket.io-client'; 
+import Select from "react-select";
+
 // storing socket connection in this global variable
 let socket = null;
 let socketRemoteServer = null;
 
-function handleClick() {
-  // we emit this event that increments the count on the server
-  // and the updated count is emitted back via 'counter updated'
-  socket.emit('counter clicked');
-}
-
 
 function App() {
   let count=0;
-  const host = '185.241.5.114';
-  const port = 1234;
-  const [destination, setDestination] = useState(""); 
-  const [allDestinations, setAllDestinationsData]=useState([]); 
-  
 
+  const [list, setlist]=useState(["Bar","Sim101"], ["Omer","Sim102"]); 
+
+  var trader="";
+  const [destination, setDestination] = useState(""); 
+  //const [trader, setTrader] = useState(""); 
+ const [allDestinations, setAllDestinationsData]=useState([]); 
+  const [allDestinations2, setAllDestination2sData]=useState({}); 
+
+  const options = [
+    { value: 'Bar', label: 'Bar' },
+    { value: 'Omer', label: 'Omer' },
+  ]
+  
   // after component mount...
   useEffect(() => {
     // connect to the socket server
     socket = io("ws://127.0.0.1:2222");
-    socketRemoteServer = io('ws://185.241.5.114:2666');
+    socketRemoteServer = io('http://83.229.81.169:2666');//3001
     
     socketRemoteServer.on('NewTrade', (data) => {
-      count++;
-      if (count%2){
+      
       console.log("File changed in Server ", data)  
       socket.emit('TradeNow', data);
 
-  }});
+  },[list]);
 
     socket.on('SendAllData', (AllData) => {
-      setAllDestinationsData(AllData.destinations);
-      setDestination(AllData.destinations[0])   
+      //setAllDestinationsData(AllData.destinations);
+      console.log("SendAllData", AllData)
+      // setDestination(AllData.destinations[0])   
+      // trader=AllData.trader1
+      setlist(AllData)
     });
     
   }, []);
 
   const handleAddAccount = async(value)=>{
-    setAllDestinationsData([...allDestinations,destination ])
-    socket.emit('AddDestination', destination);
+    //setAllDestinationsData([...allDestinations,destination ])
+    console.log("handleAddAccount",destination, trader)
+    list.push([trader,destination])
+    // var new_dict = {...allDestinations2};
+    // new_dict[trader]=destination
+
+    // setAllDestination2sData(new_dict)
+    console.log(list) 
+    socket.emit('AddDestination', destination, trader);
   }
   
   const handleDeleteAccount=async(row)=>{
-    console.log(row);
-    const newArray = allDestinations.filter((item, index) => item !== row);
-    setAllDestinationsData(newArray); // Updates the state with the new array
+    console.log("handleDeleteAccount",row);
+    setlist( list.filter(item => !(item[0] === row[0] && item[1] === row[1])));
+    console.log("list:",list);
+
+    //setAllDestinationsData(newArray); // Updates the state with the new array
     socket.emit('DeleteDestination', row);
   }
+
+  const handleTrader=async(row)=>{
+    console.log(row, trader);
+    trader=row;
+    console.log(trader);
+
+  }
+
+
   return (
     
     <div className="table-container">
@@ -63,7 +87,8 @@ function App() {
         </tr>
       </thead>
       <tbody>
-        {allDestinations.map(row => (
+        {list.map(row => (
+          
           <tr key={row}>
             <td>{row}</td>
             <td>
@@ -80,6 +105,13 @@ function App() {
         onChange={(e) => setDestination(e.target.value)}
         placeholder="Enter destintion name"
       />
+        <Select  onChange={(e) =>handleTrader(e.value)}
+
+        options={options}
+        style={{width:  'fit-content'}}            
+
+      />
+
       <button onClick={handleAddAccount}>Add Account</button>
     </div>
   </div>
