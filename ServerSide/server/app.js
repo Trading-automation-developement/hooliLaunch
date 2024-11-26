@@ -22,6 +22,8 @@ LOCAL_MEMORY={
 "source1": "SimBar",
 "trader2":"Omer",
 "source2":"SimOmer",
+"trader3":"Edo",
+"source3":"SimEdo",
   "destinations": [
     "Sim102"
   ],
@@ -33,7 +35,8 @@ LOCAL_MEMORY={
 }
 const list_of_trader={
   "Bar":"Sim101",
-  "Omer":"Sim102"
+  "Omer":"Sim102",
+  //"Edo":"Sim101"
 }
 //const SettingsPath = `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source}_position.txt`;
 //bar
@@ -51,8 +54,16 @@ const SettingsPathMNQ2 = `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${
 const SettingsPathMES2 = `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source2}_position.txt`;
 
 
+//Edo
+const SettingsPathNQ3 = `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`;
+const SettingsPathES3 = `${LOCAL_MEMORY.ComputerWindowsPAth}ES 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`;
+const SettingsPathMNQ3 = `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`;
+const SettingsPathMES3 = `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`;
+
+
 const PATH_Trader1 = [SettingsPathNQ,SettingsPathES,SettingsPathMNQ,SettingsPathMES ]
 const PATH_Trader2 = [  SettingsPathNQ2,SettingsPathES2,SettingsPathMNQ2,SettingsPathMES2 ]
+const PATH_Trader3 = [  SettingsPathNQ3,SettingsPathES3,SettingsPathMNQ3,SettingsPathMES3 ]
 
 var users={
   "83.229.81.169:2666":"ClientYuvalTrial",
@@ -66,7 +77,7 @@ var connected = new Set([]);
 
 
 // try{
-//   PATH_Trader1.forEach(element => {
+//   PATH_Trader3.forEach(element => {
 //     fs.writeFile(element, "", function (err) {
 //       if (err) throw err;
 //       console.log("It's saved!");
@@ -304,6 +315,105 @@ fs.watch(SettingsPathNQ,(event, filename)=>{
           d: data.trim(),
           INS:"MES 12-24",
           trader:LOCAL_MEMORY.trader2
+        }
+      console.log("emit MES " , myObject)
+     io.sockets.emit("NewTrade", myObject)
+      fsTimeout = setTimeout(function() { fsTimeout=null }, 200) 
+  }else{
+    console.log("not ok MES")
+  }
+    
+    })
+     
+  }); 
+
+
+
+  //--------------
+  fs.watch(SettingsPathNQ3,(event, filename)=>{
+    fs.readFile(SettingsPathNQ3, 'utf8', (err, data) => {
+    console.log(data)
+    if (data) {
+      var myObject = {
+        d: data.trim(),
+        INS:"NQ 12-24",
+        trader:LOCAL_MEMORY.trader3
+    }
+      console.log("emit NQ " , myObject)
+      io.sockets.emit("NewTrade", myObject)
+      fsTimeout = setTimeout(function() { fsTimeout=null }, 100) 
+  }else{
+    console.log("not ok NQ")
+  }
+
+    //socket.emit("NewTrade", data)
+    //console.log("emit " , data, d- dateTime)
+    // if ( d- dateTime > 2500){
+    //   console.log("emit " , data, d- dateTime)
+    //   socket.emit("NewTrade", data)
+    // }else{
+    //   console.log("cant " , d- dateTime)
+    // }
+
+    
+    
+    })
+     
+  });  
+
+  fs.watch(SettingsPathES3,(event, filename)=>{
+    fs.readFile(SettingsPathES3, 'utf8', (err, data) => {
+    
+      console.log(data)
+      if (data) {
+        var myObject = {
+          d: data.trim(),
+          INS:"ES 12-24",
+          trader:LOCAL_MEMORY.trader3
+        }
+      console.log("emit ES " , myObject)
+     io.sockets.emit("NewTrade", myObject)
+      fsTimeout = setTimeout(function() { fsTimeout=null }, 1000) 
+  }else{
+    console.log("not ok ES")
+  }
+  
+    
+    })
+     
+  }); 
+  
+  fs.watch(SettingsPathMNQ3,(event, filename)=>{
+    fs.readFile(SettingsPathMNQ3, 'utf8', (err, data) => {
+    
+      console.log(data)
+      if (data) {
+        var myObject = {
+          d: data.trim(),
+          INS:"MNQ 12-24",
+          trader:LOCAL_MEMORY.trader3
+        }
+      console.log("emit MNQ " , myObject)
+     io.sockets.emit("NewTrade", myObject)
+      fsTimeout = setTimeout(function() { fsTimeout=null }, 100) 
+  }else{
+    console.log("not ok MNQ")
+  }
+  
+    
+    })
+     
+  }); 
+  
+  fs.watch(SettingsPathMES3,(event, filename)=>{
+    fs.readFile(SettingsPathMES3, 'utf8', (err, data) => {
+    
+      console.log(data)
+      if (data) {
+        var myObject = {
+          d: data.trim(),
+          INS:"MES 12-24",
+          trader:LOCAL_MEMORY.trader3
         }
       console.log("emit MES " , myObject)
      io.sockets.emit("NewTrade", myObject)

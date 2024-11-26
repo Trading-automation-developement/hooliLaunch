@@ -15,6 +15,7 @@ function App() {
     const options = [
         { value: 'Bar', label: 'Bar' },
         { value: 'Omer', label: 'Omer' },
+        { value: 'Edo', label: 'Edo' },
     ];
 
     useEffect(() => {
