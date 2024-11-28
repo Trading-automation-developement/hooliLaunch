@@ -13,8 +13,8 @@ function App() {
     const [connectionStatus, setConnectionStatus] = useState('pending');
 
     const options = [
-        { value: 'Bar', label: 'Bar' },
-        { value: 'Omer', label: 'Omer' },
+       // { value: 'Bar', label: 'Bar' },
+        //{ value: 'Omer', label: 'Omer' },
         { value: 'Edo', label: 'Edo' },
     ];
 

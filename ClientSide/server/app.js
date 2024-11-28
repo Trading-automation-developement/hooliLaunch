@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 LOCAL_MEMORY={
-  "destinations": [["Bar","Sim101"], ["Omer","Sim102"]],
+  "destinations": [],
   "ComputerWindowsPAth": "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\outgoing\\",  
 }
 
