@@ -34,8 +34,8 @@ LOCAL_MEMORY={
   "ComputerWindowsPAth": "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\outgoing\\",
 }
 const list_of_trader={
-  //"Bar":"Sim101",
-  //"Omer":"Sim102",
+  "Bar":"Sim101",
+  "Omer":"Sim102",
   "Edo":"Sim101"
 }
 //const SettingsPath = `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source}_position.txt`;
