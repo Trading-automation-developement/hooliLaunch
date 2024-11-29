@@ -10,30 +10,29 @@ const PORT = 2666;
 const io = require('socket.io')(PORT);
 require('log-timestamp');
 
-// License system
 const VALID_LICENSES = {
   'XKP7-MNTV-HDLR-9W4E': {
     expiryDate: '2024-12-31',
     tier: 'premium',
     features: ['all'],
-    maxConnections: 10
+    maxConnections: 1  // Changed to 1 for single instance
   },
   'JR2H-KWVX-9FPB-5MEY': {
     expiryDate: '2024-12-31',
     tier: 'standard',
     features: ['basic', 'advanced'],
-    maxConnections: 5
+    maxConnections: 1  // Changed to 1 for single instance
   },
   'YT6C-NQLZ-8DVA-3UXB': {
     expiryDate: '2024-12-31',
     tier: 'basic',
     features: ['basic'],
-    maxConnections: 2
+    maxConnections: 1  // Changed to 1 for single instance
   }
 };
 
-// Active sessions tracking
 const activeSessions = new Map();
+const activeLicenses = new Map();
 
 app.use(express.json());
 app.use(cors());
@@ -57,7 +56,6 @@ LOCAL_MEMORY = {
   "ComputerWindowsPAth": "C:\\Users\\" + os.userInfo().username + "\\Documents\\NinjaTrader 8\\outgoing\\",
 };
 
-// Path configurations
 const PATH_CONFIGS = {
   trader1: {
     NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source1}_position.txt`,
@@ -79,27 +77,24 @@ const PATH_CONFIGS = {
   }
 };
 
-// License verification function
 function verifyLicense(licenseKey, clientInfo) {
   console.log('Verifying license:', licenseKey, clientInfo);
   const license = VALID_LICENSES[licenseKey];
+
   if (!license) {
     return { valid: false, message: 'Invalid license key' };
+  }
+
+  // Check if license is already in use by a different socket
+  const activeSession = activeLicenses.get(licenseKey);
+  if (activeSession && activeSession.socketId !== clientInfo.id) {
+    return { valid: false, message: 'License already in use by another instance' };
   }
 
   const now = new Date();
   const expiryDate = new Date(license.expiryDate);
   if (now > expiryDate) {
     return { valid: false, message: 'License expired' };
-  }
-
-  // Check number of active connections for this license
-  const activeConnectionsCount = Array.from(activeSessions.values())
-      .filter(session => session.licenseKey === licenseKey)
-      .length;
-
-  if (activeConnectionsCount >= license.maxConnections) {
-    return { valid: false, message: 'Maximum connections reached for this license' };
   }
 
   return {
@@ -112,7 +107,6 @@ function verifyLicense(licenseKey, clientInfo) {
 io.on('connection', async (socket) => {
   console.log('New connection attempt:', socket.handshake.address);
 
-  // Handle authentication
   socket.on('authenticate', async (data) => {
     const { licenseKey } = data;
     const verificationResult = verifyLicense(licenseKey, {
@@ -121,8 +115,9 @@ io.on('connection', async (socket) => {
     });
 
     if (verificationResult.valid) {
-      // Register session
-      console.log("Valid authentication")
+      // Register session and license usage
+      console.log("Valid authentication");
+
       activeSessions.set(socket.id, {
         licenseKey,
         tier: verificationResult.tier,
@@ -130,22 +125,25 @@ io.on('connection', async (socket) => {
         features: verificationResult.features
       });
 
-      // In the server code, modify the authentication success response:
+      activeLicenses.set(licenseKey, {
+        socketId: socket.id,
+        connectedAt: new Date(),
+        ip: socket.handshake.address
+      });
+
       socket.emit('authenticated', {
         status: 'success',
-        valid: verificationResult.valid,  // Add this line
+        valid: true,
         tier: verificationResult.tier,
         features: verificationResult.features
       });
 
-      // Send initial data based on tier
       socket.emit("SendAllData", LOCAL_MEMORY);
-
-      // Set up file watchers based on tier
       setupFileWatchers(socket, verificationResult.tier);
     } else {
       socket.emit('authenticated', {
         status: 'error',
+        valid: false,
         message: verificationResult.message
       });
     }
@@ -153,23 +151,24 @@ io.on('connection', async (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
-    activeSessions.delete(socket.id);
+    const session = activeSessions.get(socket.id);
+    if (session) {
+      activeLicenses.delete(session.licenseKey);
+      activeSessions.delete(socket.id);
+    }
   });
 
-  // Handle updating source
   socket.on('UpdateSource', (value) => {
     const session = activeSessions.get(socket.id);
     if (!session) {
       socket.emit('error', { message: 'Authentication required' });
       return;
     }
-
     console.log("UpdateSource", value);
     LOCAL_MEMORY.source1 = value;
   });
 });
 
-// Function to setup file watchers based on tier
 function setupFileWatchers(socket, tier) {
   function createWatcher(path, instrument, trader) {
     fs.watch(path, (event, filename) => {
@@ -186,30 +185,25 @@ function setupFileWatchers(socket, tier) {
     });
   }
 
-  // Set up watchers based on tier
   if (tier === 'premium') {
-    // Premium gets access to all traders
     Object.entries(PATH_CONFIGS).forEach(([trader, paths]) => {
       Object.entries(paths).forEach(([instrument, path]) => {
         createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
       });
     });
   } else if (tier === 'standard') {
-    // Standard gets access to trader1 and trader2
     ['trader1', 'trader2'].forEach(trader => {
       Object.entries(PATH_CONFIGS[trader]).forEach(([instrument, path]) => {
         createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
       });
     });
   } else {
-    // Basic gets access to trader1 only
     Object.entries(PATH_CONFIGS.trader1).forEach(([instrument, path]) => {
       createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY.trader1);
     });
   }
 }
 
-// Error handling
 io.on('error', (err) => {
   console.error('Socket.io error:', err);
 });
