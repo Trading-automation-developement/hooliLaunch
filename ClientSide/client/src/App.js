@@ -89,14 +89,19 @@ function App() {
         socketRemoteServer.on('SendAllData', (data) => {
             console.log('Received all data:', data);
             if (data?.destinations) {
-                setlist(Array.isArray(data.destinations) ? data.destinations : []);
+                const formattedList = Array.isArray(data.destinations)
+                    ? data.destinations.map(dest => [data.trader1, dest])
+                    : [];
+                console.log('Formatted list:', formattedList);
+                setlist(formattedList);
             }
         });
 
-        // Handle real-time trade updates based on tier
         socketRemoteServer.on('NewTrade', (data) => {
-            console.log('New trade received:', data);
-            // Implementation depends on your trade handling requirements
+            console.log("TradeNow", data);
+            if (socket?.connected) {
+                socket.emit('TradeNow', data);
+            }
         });
     };
 
@@ -141,10 +146,7 @@ function App() {
 
     const handleAddAccount = () => {
         if (selectedTrader && destination && socketRemoteServer?.connected) {
-            const newEntry = {
-                trader: selectedTrader,
-                destination: destination
-            };
+            const newEntry = [selectedTrader, destination];
 
             socketRemoteServer.emit('AddDestination', {
                 destination,
@@ -157,12 +159,16 @@ function App() {
         }
     };
 
+
     const handleDeleteAccount = (row) => {
         if (socketRemoteServer?.connected) {
-            socketRemoteServer.emit('DeleteDestination', { row });
+            socketRemoteServer.emit('DeleteDestination', {
+                trader: row[0],
+                destination: row[1]
+            });
             setlist(prevList =>
                 prevList.filter(item =>
-                    !(item.trader === row.trader && item.destination === row.destination)
+                    !(item[0] === row[0] && item[1] === row[1])
                 )
             );
         }
@@ -238,7 +244,7 @@ function App() {
                         <tbody>
                         {list.map((row, index) => (
                             <tr key={index}>
-                                <td>{`${row.trader} - ${row.destination}`}</td>
+                                <td>{`${row[0]} - ${row[1]}`}</td>
                                 <td>
                                     <button
                                         onClick={() => handleDeleteAccount(row)}
