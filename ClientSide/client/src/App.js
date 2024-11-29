@@ -5,21 +5,8 @@ import './App.css';
 let socket = null;
 let socketRemoteServer = null;
 
-const VALID_LICENSES = {
-    'XKP7-MNTV-HDLR-9W4E': { expiryDate: '2025-12-31', tier: 'basic' },
-    'JR2H-KWVX-9FPB-5MEY': { expiryDate: '2025-12-31', tier: 'basic' },
-    'YT6C-NQLZ-8DVA-3UXB': { expiryDate: '2025-12-31', tier: 'basic' },
-    'LM4W-PJKH-7RST-2BNX': { expiryDate: '2025-12-31', tier: 'basic' },
-    'GF9V-QXCY-5HTU-8AZE': { expiryDate: '2025-12-31', tier: 'basic' },
-    'WB3D-RMKP-6NVS-4JGL': { expiryDate: '2025-12-31', tier: 'basic' },
-    'KT8H-ZCXY-2WFN-7MVQ': { expiryDate: '2025-12-31', tier: 'basic' },
-    'DP5L-BHJA-4RUE-9GST': { expiryDate: '2025-12-31', tier: 'basic' },
-    'VN6M-KFWX-3YCP-5ZRD': { expiryDate: '2025-12-31', tier: 'basic' },
-    'QA2B-THLG-8EMU-6WYX': { expiryDate: '2025-06-30', tier: 'basic' },
-};
-
 function App() {
-    const [list, setlist] = useState([["Bar","Sim101"], ["Omer","Sim102"]]);
+    const [list, setlist] = useState([]);
     const [destination, setDestination] = useState("");
     const [localConnected, setLocalConnected] = useState(false);
     const [remoteConnected, setRemoteConnected] = useState(false);
@@ -36,101 +23,157 @@ function App() {
         { value: 'Edo', label: 'Edo' },
     ];
 
-    const validateLicense = (license) => {
-        const licenseDetails = VALID_LICENSES[license];
-        if (!licenseDetails) {
-            return { isValid: false, message: "Invalid license key" };
+    const initializeRemoteSocket = () => {
+        console.log('Initializing remote socket...');
+
+        if (socketRemoteServer) {
+            socketRemoteServer.disconnect();
         }
 
-        const today = new Date();
-        const expiryDate = new Date(licenseDetails.expiryDate);
+        socketRemoteServer = io('http://127.0.0.1:2666', {
+            transports: ['websocket'],
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000
+        });
 
-        if (today > expiryDate) {
-            return { isValid: false, message: "License has expired" };
-        }
+        socketRemoteServer.on('connect', () => {
+            console.log('Connected to remote server');
+            setRemoteConnected(true);
+            setConnectionStatus('pending');
 
-        return {
-            isValid: true,
-            message: "License valid",
-            details: {
-                ...licenseDetails,
-                remainingDays: Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
+            // Send authentication request immediately after connection
+            socketRemoteServer.emit('authenticate', {
+                licenseKey: licenseNumber,
+                clientInfo: {
+                    ip: window.location.hostname,
+                    userAgent: navigator.userAgent
+                }
+            });
+        });
+
+        socketRemoteServer.on('authenticated', (response) => {
+            console.log('Authentication response:', response);
+            if (response.status === 'success' && response.valid) {
+                setIsLoggedIn(true);
+                setLicenseInfo(response);
+                setLoginError("");
+                setConnectionStatus('connected');
+                socketRemoteServer.emit('requestInitialData');
+            } else {
+                setLoginError(response.message || 'Invalid license key');
+                setConnectionStatus('failed');
+                setIsLoggedIn(false);
+                socketRemoteServer.disconnect();
             }
-        };
+        });
+
+        socketRemoteServer.on('disconnect', () => {
+            console.log('Disconnected from remote server');
+            setRemoteConnected(false);
+            setConnectionStatus('failed');
+            setIsLoggedIn(false);
+        });
+
+        socketRemoteServer.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+            setLoginError('Connection failed');
+            setConnectionStatus('failed');
+        });
+
+        socketRemoteServer.on('error', (error) => {
+            console.error('Socket error:', error);
+            setLoginError('Connection error occurred');
+        });
+
+        socketRemoteServer.on('SendAllData', (data) => {
+            console.log('Received all data:', data);
+            if (data?.destinations) {
+                setlist(Array.isArray(data.destinations) ? data.destinations : []);
+            }
+        });
+
+        // Handle real-time trade updates based on tier
+        socketRemoteServer.on('NewTrade', (data) => {
+            console.log('New trade received:', data);
+            // Implementation depends on your trade handling requirements
+        });
     };
 
-    const handleLogin = () => {
-        const validationResult = validateLicense(licenseNumber);
-
-        if (validationResult.isValid) {
-            setIsLoggedIn(true);
-            setLicenseInfo(validationResult.details);
-            setLoginError("");
-        } else {
-            setLoginError(validationResult.message);
-            setTimeout(() => setLoginError(""), 3000);
+    const initializeLocalSocket = () => {
+        if (socket) {
+            socket.disconnect();
         }
+
+        socket = io("http://127.0.0.1:2222", {
+            transports: ['websocket'],
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+        });
+
+        socket.on('connect', () => {
+            console.log('Local server connected');
+            setLocalConnected(true);
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Local server disconnected');
+            setLocalConnected(false);
+        });
     };
 
     useEffect(() => {
-        if (isLoggedIn) {
-            socket = io("http://127.0.0.1:2222", {
-                transports: ['polling','websocket'],
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000
-            });
+        initializeLocalSocket();
+        return () => {
+            if (socket) socket.disconnect();
+            if (socketRemoteServer) socketRemoteServer.disconnect();
+        };
+    }, []);
 
-            socketRemoteServer = io('http://83.229.81.169:2666', {
-                transports: ['websocket'],
-                reconnection: true,
-                reconnectionAttempts: 10,
-                reconnectionDelay: 1000,
-                query: { EIO: "3" }
-            });
-
-            // Rest of your socket connection logic remains the same
-            socket.on('connect', () => {
-                console.log('Local server connected');
-                setLocalConnected(true);
-                setConnectionStatus('connected');
-            });
-
-            // ... (rest of the socket event handlers remain the same)
-
-            return () => {
-                if (socket) socket.disconnect();
-                if (socketRemoteServer) socketRemoteServer.disconnect();
-            };
+    const handleLogin = () => {
+        if (!licenseNumber.trim()) {
+            setLoginError("Please enter a license key");
+            return;
         }
-    }, [isLoggedIn]);
+        setLoginError("");
+        initializeRemoteSocket();
+    };
 
-    // Your existing handlers remain the same
     const handleAddAccount = () => {
-        if (selectedTrader && destination && socket?.connected) {
-            setlist([...list, [selectedTrader, destination]]);
-            socket.emit('AddDestination', destination, selectedTrader);
+        if (selectedTrader && destination && socketRemoteServer?.connected) {
+            const newEntry = {
+                trader: selectedTrader,
+                destination: destination
+            };
+
+            socketRemoteServer.emit('AddDestination', {
+                destination,
+                trader: selectedTrader
+            });
+
+            setlist(prevList => [...prevList, newEntry]);
             setDestination("");
             setSelectedTrader("");
         }
     };
 
     const handleDeleteAccount = (row) => {
-        if (socket?.connected) {
-            setlist(list.filter(item => !(item[0] === row[0] && item[1] === row[1])));
-            socket.emit('DeleteDestination', row);
+        if (socketRemoteServer?.connected) {
+            socketRemoteServer.emit('DeleteDestination', { row });
+            setlist(prevList =>
+                prevList.filter(item =>
+                    !(item.trader === row.trader && item.destination === row.destination)
+                )
+            );
         }
     };
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'connected':
-                return '#4CAF50';
-            case 'pending':
-                return '#FFA500';
-            case 'failed':
-                return '#f44336';
-            default:
-                return '#FFA500';
+            case 'connected': return '#4CAF50';
+            case 'pending': return '#FFA500';
+            case 'failed': return '#f44336';
+            default: return '#FFA500';
         }
     };
 
@@ -143,7 +186,7 @@ function App() {
                         <input
                             type="text"
                             value={licenseNumber}
-                            onChange={(e) => setLicenseNumber(e.target.value)}
+                            onChange={(e) => setLicenseNumber(e.target.value.toUpperCase())}
                             placeholder="Enter license key"
                             className="input"
                         />
@@ -158,21 +201,16 @@ function App() {
                                 {loginError}
                             </div>
                         )}
+                        {licenseInfo && (
+                            <div style={{ color: '#4CAF50', marginTop: '10px' }}>
+                                Tier: {licenseInfo.tier} | Features: {licenseInfo.features.join(', ')}
+                            </div>
+                        )}
                     </div>
                 </div>
             ) : (
                 <>
                     <h1 className="header">Client Interface - Trading Dashboard</h1>
-
-                    <div className="license-info" style={{
-                        backgroundColor: '#f5f5f5',
-                        padding: '10px',
-                        marginBottom: '20px',
-                        borderRadius: '4px'
-                    }}>
-                        <p>License Tier: {licenseInfo.tier.toUpperCase()}</p>
-                        <p>Expires in: {licenseInfo.remainingDays} days</p>
-                    </div>
 
                     <div className="status-container">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -183,9 +221,13 @@ function App() {
                             <div className="status-indicator" style={{ backgroundColor: remoteConnected ? '#4CAF50' : '#f44336' }}></div>
                             <span>Remote Server</span>
                         </div>
+                        {licenseInfo && (
+                            <div style={{ marginLeft: 'auto' }}>
+                                <span>Tier: {licenseInfo.tier}</span>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Rest of your component remains the same */}
                     <table className="table">
                         <thead>
                         <tr>
@@ -196,7 +238,7 @@ function App() {
                         <tbody>
                         {list.map((row, index) => (
                             <tr key={index}>
-                                <td>{row.join(" - ")}</td>
+                                <td>{`${row.trader} - ${row.destination}`}</td>
                                 <td>
                                     <button
                                         onClick={() => handleDeleteAccount(row)}
