@@ -18,8 +18,6 @@ function App() {
     const [loginError, setLoginError] = useState("");
 
     const options = [
-        { value: 'Bar', label: 'Bar' },
-        { value: 'Omer', label: 'Omer' },
         { value: 'Edo', label: 'Edo' },
     ];
 
