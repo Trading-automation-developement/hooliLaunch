@@ -88,7 +88,7 @@ function App() {
             console.log('Received all data:', data);
             if (data?.destinations) {
                 const formattedList = Array.isArray(data.destinations)
-                    ? data.destinations.map(dest => [data.trader1, dest])
+                    ? data.destinations.map(dest => [data.trader3, dest])
                     : [];
                 console.log('Formatted list:', formattedList);
                 setlist(formattedList);
