@@ -20,7 +20,6 @@ function App() {
     const options = [
         { value: 'Bar', label: 'Bar' },
         { value: 'Omer', label: 'Omer' },
-        { value: 'Edo', label: 'Edo' },
     ];
 
     const initializeRemoteSocket = () => {
@@ -30,7 +29,7 @@ function App() {
             socketRemoteServer.disconnect();
         }
 
-        socketRemoteServer = io('http://127.0.0.1:2666', {
+        socketRemoteServer = io('http://83.229.81.169:2666', {
             transports: ['websocket'],
             reconnection: true,
             reconnectionAttempts: 10,
