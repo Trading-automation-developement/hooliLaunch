@@ -28,7 +28,7 @@ function App() {
             socketRemoteServer.disconnect();
         }
 
-        socketRemoteServer = io('http://127.0.0.1:2666', {
+        socketRemoteServer = io('http://83.229.81.169:2666', {
             transports: ['websocket'],
             reconnection: true,
             reconnectionAttempts: 10,
@@ -183,6 +183,7 @@ function App() {
 
     return (
         <div className="container">
+            {/*<img src="/favicon.ico" alt="Logo" style={{ position: 'absolute', left: '10px', top: '10px', width: '50px', height: '50px' }} />*/}
             {!isLoggedIn ? (
                 <div style={{ textAlign: 'center' }}>
                     <h1 className="header">Trading Software Login</h1>
