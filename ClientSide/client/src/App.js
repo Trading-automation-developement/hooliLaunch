@@ -170,11 +170,8 @@ function App() {
                 trader: row[0],
                 destination: row[1]
             });
-            setlist(prevList =>
-                prevList.filter(item =>
-                    !(item[0] === row[0] && item[1] === row[1])
-                )
-            );
+            const updatedList = list.filter(item => !(item[0] === row[0] && item[1] === row[1]));
+            setlist(updatedList);
         }
     };
 
