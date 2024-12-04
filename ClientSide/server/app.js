@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 LOCAL_MEMORY={
-  "destinations": [["Bar","Sim101"], ["Omer","Sim101"]],
+  "destinations": [["Omer","Sim102"]],
   "ComputerWindowsPAth": "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\outgoing\\",  
 }
 
@@ -32,7 +32,8 @@ io.on('connection', (socket) => {
 
 socket.on('DeleteDestination', (value) => {
   console.log('Server DeleteDestination', value);
-  LOCAL_MEMORY.destinations = LOCAL_MEMORY.destinations.filter(  item => !(item[0] === value[0] && item[1] === value[1])
+  LOCAL_MEMORY.destinations = LOCAL_MEMORY.destinations.filter( 
+    item => !(item[0] === value["trader"] && item[1] === value["destination"])
 );
   console.log("new Local memory", LOCAL_MEMORY)
 });
