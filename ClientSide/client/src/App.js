@@ -145,7 +145,7 @@ function App() {
 
     const handleAddAccount = () => {
         
-        if (selectedTrader && destination && socketRemoteServer?.connected) {
+        if (selectedTrader && destination && socket?.connected) {
             const newEntry = [selectedTrader, destination];
             socket.emit('AddDestination', [
                 selectedTrader,
@@ -165,8 +165,8 @@ function App() {
 
 
     const handleDeleteAccount = (row) => {
-        if (socketRemoteServer?.connected) {
-            socketRemoteServer.emit('DeleteDestination', {
+        if (socket?.connected) {
+            socket.emit('DeleteDestination', {
                 trader: row[0],
                 destination: row[1]
             });
