@@ -185,23 +185,25 @@ function setupFileWatchers(socket, tier) {
     });
   }
 
-  if (tier === 'premium') {
-    Object.entries(PATH_CONFIGS).forEach(([trader, paths]) => {
-      Object.entries(paths).forEach(([instrument, path]) => {
-        createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
-      });
+  ['trader1', 'trader2', 'trader3'].forEach(trader => {
+    Object.entries(PATH_CONFIGS[trader]).forEach(([instrument, path]) => {
+      createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
     });
-  } else if (tier === 'standard') {
-    ['trader1', 'trader2'].forEach(trader => {
-      Object.entries(PATH_CONFIGS[trader]).forEach(([instrument, path]) => {
-        createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
-      });
-    });
-  } else {
-    Object.entries(PATH_CONFIGS.trader1).forEach(([instrument, path]) => {
-      createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY.trader1);
-    });
-  }
+  });
+
+  // if (tier === 'premium') {
+  //   Object.entries(PATH_CONFIGS).forEach(([trader, paths]) => {
+  //     Object.entries(paths).forEach(([instrument, path]) => {
+  //       createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
+  //     });
+  //   });
+  // } else if (tier === 'standard') {
+  //
+  // } else {
+  //   Object.entries(PATH_CONFIGS.trader1).forEach(([instrument, path]) => {
+  //     createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
+  //   });
+  // }
 }
 
 io.on('error', (err) => {

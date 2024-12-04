@@ -18,7 +18,6 @@ function App() {
     const [loginError, setLoginError] = useState("");
 
     const options = [
-        { value: 'Edo', label: 'Edo' },
         { value: 'Bar', label: 'Bar' },
         { value: 'Omer', label: 'Omer' }
     ];
@@ -90,7 +89,7 @@ function App() {
             console.log('Received all data:', data);
             if (data?.destinations) {
                 const formattedList = Array.isArray(data.destinations)
-                    ? data.destinations.map(dest => [data.trader3, dest])
+                    ? data.destinations.map(dest => [data.trader2, dest])
                     : [];
                 console.log('Formatted list:', formattedList);
                 setlist(formattedList);
