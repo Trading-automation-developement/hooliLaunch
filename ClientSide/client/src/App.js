@@ -144,17 +144,22 @@ function App() {
     };
 
     const handleAddAccount = () => {
+        
         if (selectedTrader && destination && socketRemoteServer?.connected) {
             const newEntry = [selectedTrader, destination];
-
-            socketRemoteServer.emit('AddDestination', {
-                destination,
-                trader: selectedTrader
-            });
-
-            setlist(prevList => [...prevList, newEntry]);
+            socket.emit('AddDestination', [
+                selectedTrader,
+                destination  
+            ]);
+            var new_list= [...list];
+            new_list.push(newEntry)
+            
+            setlist(new_list);
             setDestination("");
             setSelectedTrader("");
+            console.log("new", new_list)
+            
+
         }
     };
 

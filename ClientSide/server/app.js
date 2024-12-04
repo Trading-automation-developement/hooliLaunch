@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 LOCAL_MEMORY={
-  "destinations": [["Bar","Sim101"]],
+  "destinations": [["Bar","Sim101"], ["Omer","Sim101"]],
   "ComputerWindowsPAth": "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\outgoing\\",  
 }
 
@@ -36,15 +36,17 @@ socket.on('DeleteDestination', (value) => {
 );
   console.log("new Local memory", LOCAL_MEMORY)
 });
-socket.on('AddDestination', (value, val2) => {
-  console.log("AddDestination", value, val2)
-  LOCAL_MEMORY.destinations.push([val2,value]);
+socket.on('AddDestination', (value) => {
+  console.log("AddDestination", value[0], value[1])
+  LOCAL_MEMORY.destinations.push(value);
   console.log('Server UpdateDestination', LOCAL_MEMORY.destinations);
   socket.emit("SendAllData", LOCAL_MEMORY.destinations)
 
 });
 
 socket.on('TradeNow', (data) => {
+  console.log(LOCAL_MEMORY.destinations);
+  console.log("--------")
   console.log('TradeNow', data["d"], data["INS"],data["trader"], new Date(), Currentvalues);
   for(var key in LOCAL_MEMORY.destinations ){
     if(data["trader"]==LOCAL_MEMORY.destinations[key][0]){
@@ -55,7 +57,7 @@ socket.on('TradeNow', (data) => {
       console.log("no for ",LOCAL_MEMORY.destinations[key][0]);
     }
   }
-  console.log('Finish Trade', PrevFunction, Currentvalues);
+  //console.log('Finish Trade', PrevFunction, Currentvalues);
   console.log('------------------------------------------------------------');
 });
 });
