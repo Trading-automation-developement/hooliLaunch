@@ -19,6 +19,7 @@ function App() {
 
     const options = [
         { value: 'Edo', label: 'Edo' },
+
     ];
 
     const initializeRemoteSocket = () => {
