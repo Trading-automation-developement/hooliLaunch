@@ -211,7 +211,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader1.NQ, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader1.NQ, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "NQ 12-24",
           trader: LOCAL_MEMORY.trader1
@@ -223,7 +223,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader2.NQ, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader2.NQ, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "NQ 12-24",
           trader: LOCAL_MEMORY.trader2
@@ -235,7 +235,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader3.NQ, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader3.NQ, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "NQ 12-24",
           trader: LOCAL_MEMORY.trader3
@@ -248,7 +248,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader1.ES, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader1.ES, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "ES 12-24",
           trader: LOCAL_MEMORY.trader1
@@ -260,7 +260,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader2.ES, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader2.ES, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "ES 12-24",
           trader: LOCAL_MEMORY.trader2
@@ -272,7 +272,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader3.ES, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader3.ES, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "ES 12-24",
           trader: LOCAL_MEMORY.trader3
@@ -285,7 +285,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader1.MNQ, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader1.MNQ, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "MNQ 12-24",
           trader: LOCAL_MEMORY.trader1
@@ -297,7 +297,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader2.MNQ, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader2.MNQ, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "MNQ 12-24",
           trader: LOCAL_MEMORY.trader2
@@ -309,7 +309,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader3.MNQ, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader3.MNQ, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "MNQ 12-24",
           trader: LOCAL_MEMORY.trader3
@@ -322,7 +322,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader1.MES, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader1.MES, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "MES 12-24",
           trader: LOCAL_MEMORY.trader1
@@ -334,7 +334,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader2.MES, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader2.MES, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "MES 12-24",
           trader: LOCAL_MEMORY.trader2
@@ -346,7 +346,7 @@ function setupFileWatchers(socket) {
   fs.watch(PATH_CONFIGS.trader3.MES, (event, filename) => {
     fs.readFile(PATH_CONFIGS.trader3.MES, 'utf8', (err, data) => {
       if (data) {
-        socket.emit("NewTrade", {
+        io.sockets.emit("NewTrade", {
           d: data.trim(),
           INS: "MES 12-24",
           trader: LOCAL_MEMORY.trader3
