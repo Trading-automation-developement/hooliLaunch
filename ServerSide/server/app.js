@@ -169,192 +169,44 @@ io.on('connection', async (socket) => {
   });
 });
 
-// function setupFileWatchers(socket, tier) {
-//   function createWatcher(path, instrument, trader) {
-//     fs.watch(path, (event, filename) => {
-//       fs.readFile(path, 'utf8', (err, data) => {
-//         if (data) {
-//           const myObject = {
-//             d: data.trim(),
-//             INS: instrument,
-//             trader: trader
-//           };
-//           socket.emit("NewTrade", myObject);
-//         }
-//       });
-//     });
-//   }
-//
-//   ['trader1', 'trader2', 'trader3'].forEach(trader => {
-//     Object.entries(PATH_CONFIGS[trader]).forEach(([instrument, path]) => {
-//       createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
-//     });
-//   });
-//
-//   // if (tier === 'premium') {
-//   //   Object.entries(PATH_CONFIGS).forEach(([trader, paths]) => {
-//   //     Object.entries(paths).forEach(([instrument, path]) => {
-//   //       createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
-//   //     });
-//   //   });
-//   // } else if (tier === 'standard') {
-//   //
-//   // } else {
-//   //   Object.entries(PATH_CONFIGS.trader1).forEach(([instrument, path]) => {
-//   //     createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
-//   //   });
-//   // }
-// }
+function setupFileWatchers(socket, tier) {
+  function createWatcher(path, instrument, trader) {
+    fs.watch(path, (event, filename) => {
+      fs.readFile(path, 'utf8', (err, data) => {
+        if (data) {
+          const myObject = {
+            d: data.trim(),
+            INS: instrument,
+            trader: trader
+          };
+          socket.emit("NewTrade", myObject);
+        }
+      });
+    });
+  }
 
-function setupFileWatchers(socket) {
-  // NQ watchers
-  fs.watch(PATH_CONFIGS.trader1.NQ, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader1.NQ, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "NQ 12-24",
-          trader: LOCAL_MEMORY.trader1
-        });
-      }
+  ['trader1', 'trader2', 'trader3'].forEach(trader => {
+    Object.entries(PATH_CONFIGS[trader]).forEach(([instrument, path]) => {
+      createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
     });
   });
 
-  fs.watch(PATH_CONFIGS.trader2.NQ, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader2.NQ, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "NQ 12-24",
-          trader: LOCAL_MEMORY.trader2
-        });
-      }
-    });
-  });
-
-  fs.watch(PATH_CONFIGS.trader3.NQ, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader3.NQ, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "NQ 12-24",
-          trader: LOCAL_MEMORY.trader3
-        });
-      }
-    });
-  });
-
-  // ES watchers
-  fs.watch(PATH_CONFIGS.trader1.ES, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader1.ES, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "ES 12-24",
-          trader: LOCAL_MEMORY.trader1
-        });
-      }
-    });
-  });
-
-  fs.watch(PATH_CONFIGS.trader2.ES, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader2.ES, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "ES 12-24",
-          trader: LOCAL_MEMORY.trader2
-        });
-      }
-    });
-  });
-
-  fs.watch(PATH_CONFIGS.trader3.ES, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader3.ES, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "ES 12-24",
-          trader: LOCAL_MEMORY.trader3
-        });
-      }
-    });
-  });
-
-  // MNQ watchers
-  fs.watch(PATH_CONFIGS.trader1.MNQ, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader1.MNQ, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "MNQ 12-24",
-          trader: LOCAL_MEMORY.trader1
-        });
-      }
-    });
-  });
-
-  fs.watch(PATH_CONFIGS.trader2.MNQ, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader2.MNQ, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "MNQ 12-24",
-          trader: LOCAL_MEMORY.trader2
-        });
-      }
-    });
-  });
-
-  fs.watch(PATH_CONFIGS.trader3.MNQ, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader3.MNQ, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "MNQ 12-24",
-          trader: LOCAL_MEMORY.trader3
-        });
-      }
-    });
-  });
-
-  // MES watchers
-  fs.watch(PATH_CONFIGS.trader1.MES, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader1.MES, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "MES 12-24",
-          trader: LOCAL_MEMORY.trader1
-        });
-      }
-    });
-  });
-
-  fs.watch(PATH_CONFIGS.trader2.MES, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader2.MES, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "MES 12-24",
-          trader: LOCAL_MEMORY.trader2
-        });
-      }
-    });
-  });
-
-  fs.watch(PATH_CONFIGS.trader3.MES, (event, filename) => {
-    fs.readFile(PATH_CONFIGS.trader3.MES, 'utf8', (err, data) => {
-      if (data) {
-        io.sockets.emit("NewTrade", {
-          d: data.trim(),
-          INS: "MES 12-24",
-          trader: LOCAL_MEMORY.trader3
-        });
-      }
-    });
-  });
+  // if (tier === 'premium') {
+  //   Object.entries(PATH_CONFIGS).forEach(([trader, paths]) => {
+  //     Object.entries(paths).forEach(([instrument, path]) => {
+  //       createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
+  //     });
+  //   });
+  // } else if (tier === 'standard') {
+  //
+  // } else {
+  //   Object.entries(PATH_CONFIGS.trader1).forEach(([instrument, path]) => {
+  //     createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
+  //   });
+  // }
 }
+
+
 
 io.on('error', (err) => {
   console.error('Socket.io error:', err);
