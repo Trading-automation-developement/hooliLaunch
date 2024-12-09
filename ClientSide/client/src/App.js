@@ -18,7 +18,9 @@ function App() {
     const [loginError, setLoginError] = useState("");
 
     const options = [
-        { value: 'Edo', label: 'Edo' },
+        { value: 'Lior', label: 'Lior' },
+        { value: 'Nadav', label: 'Nadav' },
+        { value: 'Beni', label: 'Beni' },
     ];
 
     const initializeRemoteSocket = () => {
