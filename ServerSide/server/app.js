@@ -28,7 +28,19 @@ const VALID_LICENSES = {
     tier: 'basic',
     features: ['basic'],
     maxConnections: 1  // Changed to 1 for single instance
-  }
+  },
+  '7L2J-4T6R-3KX9-8V5Y': {
+      expiryDate: '2024-12-31',
+      tier: 'trial',
+      features: ['basic'],
+      maxConnections: 1  // Changed to 1 for single instance
+  },
+  '3L2J-4T6R-3KX9-8V5Y': {
+      expiryDate: '2024-12-31',
+      tier: 'trial',
+      features: ['basic'],
+      maxConnections: 1  // Changed to 1 for single instance
+  },
 };
 
 const activeSessions = new Map();
@@ -46,8 +58,12 @@ LOCAL_MEMORY = {
   "source1": "SimBar",
   "trader2": "Omer",
   "source2": "SimOmer",
-  "trader3": "Edo",
-  "source3": "SimEdo",
+  "trader3": "Nadav",
+  "source3": "SimNadav",
+  "trader4": "Lior",
+  "source4": "SimLior",
+  "trader5": "Beni",
+  "source5": "SimBeni",
   "destinations": ["Sim102"],
   "approveMAC": [
     "00:50:56:3f:ee:07",
