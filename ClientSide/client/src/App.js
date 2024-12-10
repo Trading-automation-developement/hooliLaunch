@@ -21,6 +21,8 @@ function App() {
         { value: 'Lior', label: 'Lior' },
         { value: 'Nadav', label: 'Nadav' },
         { value: 'Beni', label: 'Beni' },
+        { value: 'Bar', label: 'Bar'},
+        { value: 'Omer', label: 'Omer'}
     ];
 
     const initializeRemoteSocket = () => {
