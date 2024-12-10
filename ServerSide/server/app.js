@@ -11,12 +11,25 @@ const io = require('socket.io')(PORT);
 require('log-timestamp');
 
 const VALID_LICENSES = {
+  '1': {
+    expiryDate: '2024-12-31',
+    tier: 'premium',
+    features: ['all'],
+    maxConnections: 1  // Changed to 1 for single instance
+  },
+  'Yuval': {
+    expiryDate: '2024-12-31',
+    tier: 'premium',
+    features: ['all'],
+    maxConnections: 1  // Changed to 1 for single instance
+  },
   'XKP7-MNTV-HDLR-9W4E': {
     expiryDate: '2024-12-31',
     tier: 'premium',
     features: ['all'],
     maxConnections: 1  // Changed to 1 for single instance
   },
+
   'JR2H-KWVX-9FPB-5MEY': {
     expiryDate: '2024-12-31',
     tier: 'standard',
@@ -90,8 +103,22 @@ const PATH_CONFIGS = {
     ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`,
     MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`,
     MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`
+  },
+  trader4: {
+    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source4}_position.txt`,
+    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 12-24 Globex_${LOCAL_MEMORY.source4}_position.txt`,
+    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${LOCAL_MEMORY.source4}_position.txt`,
+    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source4}_position.txt`
+  },
+  trader5: {
+    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source5}_position.txt`,
+    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 12-24 Globex_${LOCAL_MEMORY.source5}_position.txt`,
+    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${LOCAL_MEMORY.source5}_position.txt`,
+    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source5}_position.txt`
   }
 };
+
+
 
 function verifyLicense(licenseKey, clientInfo) {
   console.log('Verifying license:', licenseKey, clientInfo);
@@ -201,7 +228,7 @@ function setupFileWatchers(socket, tier) {
     });
   }
 
-  ['trader1', 'trader2', 'trader3'].forEach(trader => {
+  ['trader1', 'trader2', 'trader3', 'trader4', 'trader5'].forEach(trader => {
     Object.entries(PATH_CONFIGS[trader]).forEach(([instrument, path]) => {
       createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
     });
