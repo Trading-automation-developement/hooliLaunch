@@ -87,34 +87,34 @@ LOCAL_MEMORY = {
 
 const PATH_CONFIGS = {
   trader1: {
-    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source1}_position.txt`,
-    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 12-24 Globex_${LOCAL_MEMORY.source1}_position.txt`,
-    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${LOCAL_MEMORY.source1}_position.txt`,
-    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source1}_position.txt`
+    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 03-25 Globex_${LOCAL_MEMORY.source1}_position.txt`,
+    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 03-25 Globex_${LOCAL_MEMORY.source1}_position.txt`,
+    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 03-25 Globex_${LOCAL_MEMORY.source1}_position.txt`,
+    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 03-25 Globex_${LOCAL_MEMORY.source1}_position.txt`
   },
   trader2: {
-    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source2}_position.txt`,
-    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 12-24 Globex_${LOCAL_MEMORY.source2}_position.txt`,
-    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${LOCAL_MEMORY.source2}_position.txt`,
-    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source2}_position.txt`
+    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 03-25 Globex_${LOCAL_MEMORY.source2}_position.txt`,
+    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 03-25 Globex_${LOCAL_MEMORY.source2}_position.txt`,
+    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 03-25 Globex_${LOCAL_MEMORY.source2}_position.txt`,
+    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 03-25 Globex_${LOCAL_MEMORY.source2}_position.txt`
   },
   trader3: {
-    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`,
-    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`,
-    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`,
-    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source3}_position.txt`
+    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 03-25 Globex_${LOCAL_MEMORY.source3}_position.txt`,
+    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 03-25 Globex_${LOCAL_MEMORY.source3}_position.txt`,
+    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 03-25 Globex_${LOCAL_MEMORY.source3}_position.txt`,
+    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 03-25 Globex_${LOCAL_MEMORY.source3}_position.txt`
   },
   trader4: {
-    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source4}_position.txt`,
-    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 12-24 Globex_${LOCAL_MEMORY.source4}_position.txt`,
-    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${LOCAL_MEMORY.source4}_position.txt`,
-    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source4}_position.txt`
+    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 03-25 Globex_${LOCAL_MEMORY.source4}_position.txt`,
+    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 03-25 Globex_${LOCAL_MEMORY.source4}_position.txt`,
+    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 03-25 Globex_${LOCAL_MEMORY.source4}_position.txt`,
+    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 03-25 Globex_${LOCAL_MEMORY.source4}_position.txt`
   },
   trader5: {
-    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 12-24 Globex_${LOCAL_MEMORY.source5}_position.txt`,
-    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 12-24 Globex_${LOCAL_MEMORY.source5}_position.txt`,
-    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 12-24 Globex_${LOCAL_MEMORY.source5}_position.txt`,
-    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 12-24 Globex_${LOCAL_MEMORY.source5}_position.txt`
+    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 03-25 Globex_${LOCAL_MEMORY.source5}_position.txt`,
+    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 03-25 Globex_${LOCAL_MEMORY.source5}_position.txt`,
+    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 03-25 Globex_${LOCAL_MEMORY.source5}_position.txt`,
+    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 03-25 Globex_${LOCAL_MEMORY.source5}_position.txt`
   }
 };
 
@@ -230,21 +230,21 @@ function setupFileWatchers(socket, tier) {
 
   ['trader1', 'trader2', 'trader3', 'trader4', 'trader5'].forEach(trader => {
     Object.entries(PATH_CONFIGS[trader]).forEach(([instrument, path]) => {
-      createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
+      createWatcher(path, `${instrument} 03-25`, LOCAL_MEMORY[trader]);
     });
   });
 
   // if (tier === 'premium') {
   //   Object.entries(PATH_CONFIGS).forEach(([trader, paths]) => {
   //     Object.entries(paths).forEach(([instrument, path]) => {
-  //       createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
+  //       createWatcher(path, `${instrument} 03-25`, LOCAL_MEMORY[trader]);
   //     });
   //   });
   // } else if (tier === 'standard') {
   //
   // } else {
   //   Object.entries(PATH_CONFIGS.trader1).forEach(([instrument, path]) => {
-  //     createWatcher(path, `${instrument} 12-24`, LOCAL_MEMORY[trader]);
+  //     createWatcher(path, `${instrument} 03-25`, LOCAL_MEMORY[trader]);
   //   });
   // }
 }
