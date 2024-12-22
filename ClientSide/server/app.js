@@ -67,7 +67,7 @@ socket.on('TradeNow', (data) => {
 let Currentvalues = {};
 var dateOfLastTrade=new Date();
 let PrevFunction = {
-  "MNQ 12-24":{
+  "MNQ 03-25":{
 
     "Sim102":{
         'action': "FLAT",
@@ -78,7 +78,7 @@ let PrevFunction = {
       'Amount': 0
   },
 },
-"NQ 12-24":{
+"NQ 03-25":{
 
   "Sim102":{
       'action': "FLAT",
@@ -89,7 +89,7 @@ let PrevFunction = {
     'Amount': 0
 },
 },
-"MES 12-24":{
+"MES 03-25":{
   "APEX-36565-26":{
     'action': "FLAT",
     'Amount': 0
@@ -108,7 +108,7 @@ let PrevFunction = {
   'Amount': 0
 },
 },
-"ES 12-24":{
+"ES 03-25":{
   "Sim102":{
       'action': "FLAT",
       'Amount': 0
@@ -142,14 +142,20 @@ const FuctionForTrade=(order, nameofAccount,INS)=>{
 
   var updated_ins=INS;
   if(updated_ins.includes("SEP24")){
-    updated_ins = updated_ins.replace("SEP24", "12-24")
+    updated_ins = updated_ins.replace("SEP24", "03-25")
     console.log("new ins is", updated_ins)
   }
 
   if(updated_ins.includes("DEC24")){
-    updated_ins = updated_ins.replace("DEC24", "12-24")
+    updated_ins = updated_ins.replace("DEC24", "03-25")
     console.log("new ins is", updated_ins)
   }
+  if(updated_ins.includes("MAR25")){
+    updated_ins = updated_ins.replace("MAR25", "03-25")
+    console.log("new ins is", updated_ins)
+  }
+
+  
 
     if(!PrevFunction[updated_ins].hasOwnProperty(nameofAccount)){
       console.log("INS", INS, nameofAccount, "NOT IN PREV")

@@ -67,6 +67,8 @@ app.use(cookieParser());
 var fsTimeout;
 LOCAL_MEMORY = {
   "couter": 0,
+  "trader0": "Edo",
+  "source0": "SimEdo",
   "trader1": "Bar",
   "source1": "SimBar",
   "trader2": "Omer",
@@ -86,6 +88,12 @@ LOCAL_MEMORY = {
 };
 
 const PATH_CONFIGS = {
+  trader0: {
+    NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 03-25 Globex_${LOCAL_MEMORY.source0}_position.txt`,
+    ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 03-25 Globex_${LOCAL_MEMORY.source0}_position.txt`,
+    MNQ: `${LOCAL_MEMORY.ComputerWindowsPAth}MNQ 03-25 Globex_${LOCAL_MEMORY.source0}_position.txt`,
+    MES: `${LOCAL_MEMORY.ComputerWindowsPAth}MES 03-25 Globex_${LOCAL_MEMORY.source0}_position.txt`
+  },
   trader1: {
     NQ: `${LOCAL_MEMORY.ComputerWindowsPAth}NQ 03-25 Globex_${LOCAL_MEMORY.source1}_position.txt`,
     ES: `${LOCAL_MEMORY.ComputerWindowsPAth}ES 03-25 Globex_${LOCAL_MEMORY.source1}_position.txt`,
