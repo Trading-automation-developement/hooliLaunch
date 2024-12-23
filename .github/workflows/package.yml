@@ -1,54 +1,317 @@
-# .github/workflows/build-and-deploy.yml
-name: Build and Deploy
-
+name: Build and Package React App
 on:
   push:
-    branches: [ main ]  # Adjust according to your branch name
+    branches:
+      - '*'           
+      - '**'          
+    paths-ignore:
+      - '**.md'       
+      - 'docs/**'     
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:    # Allows manual trigger
+    branches: 
+      - '*'          
+      - '**'  
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    
     steps:
-      - name: Checkout React Repository
-        uses: actions/checkout@v3
+    - name: Checkout source project
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
-          cache: 'npm'
+    - name: Get branch name
+      id: branch-name
+      shell: bash
+      run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+      
+    - name: Checkout electron packaging project
+      uses: actions/checkout@v4
+      with:
+        repository: noaamaman325158/hooliLaunchPackage  
+        token: ${{ secrets.PAT_TOKEN }}
+        path: electron-project
+        ref: ${{ steps.branch-name.outputs.branch }}
+        lfs: false
 
-      # Build React Project
-      - name: Install Dependencies
-        run: npm ci
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        registry-url: 'https://registry.npmjs.org'
 
-      - name: Build React Project
-        run: npm run build
+    - name: Install Wine
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
+        sudo apt-get install -y wine64 wine32
 
-      # Checkout Electron Repository
-      - name: Checkout Electron Repository
-        uses: actions/checkout@v3
-        with:
-          repository: noaamaman325158/hooliLaunchPackage 
-          token: ${{ secrets.GH_PAT }}
-          path: electron-project
+    - name: Build React App
+      working-directory: ./ClientSide/client
+      run: |
+        npm install --package-lock-only
+        npm install
+        CI=false npm run build
 
-      # Copy Build and Push
-      - name: Copy Build to Electron Project
-        run: |
-          rm -rf electron-project/build
-          cp -r build electron-project/build
+    - name: Create fix-paths script
+      working-directory: ./ClientSide/client
+      run: |
+        echo '
+        const fs = require("fs");
+        const path = require("path");
+        const buildDir = path.join("build");
+        const indexPath = path.join(buildDir, "index.html");
+        let originalHtml = fs.readFileSync(indexPath, "utf8");
+        const cssHash = originalHtml.match(/main\.(.*?)\.css/)[1];
+        const jsHash = originalHtml.match(/main\.(.*?)\.js/)[1];
+        const newHtml = String.raw`
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <link rel="icon" href="./favicon.ico" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <meta name="theme-color" content="#000000" />
+            <meta name="description" content="Modern React application" />
+            <link rel="apple-touch-icon" href="./logo152.png" />
+            <link rel="manifest" href="./manifest.json" />
+            <link href="./static/css/main.${cssHash}.css" rel="stylesheet" type="text/css" />
+            <title>Your App Name</title>
+            <script defer="defer" src="./static/js/main.${jsHash}.js" type="text/javascript"></script>
+            <script>
+              if (typeof process === "object") {
+                window.__dirname = process.cwd();
+                window.ipcRenderer = require("electron").ipcRenderer;
+              }
+            </script>
+          </head>
+          <body>
+            <noscript>You need to enable JavaScript to run this application. Please enable it to continue.</noscript>
+            <div id="root"></div>
+          </body>
+        </html>
+        `;
+        fs.writeFileSync(indexPath, newHtml);
+        console.log("Updated index.html with correct paths and MIME types");
+        ' > fix-paths.js
 
-      - name: Commit and Push Build
-        run: |
-          cd electron-project
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add build
-          git commit -m "Update build from React project" || echo "No changes to commit"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+    - name: Run fix-paths script
+      working-directory: ./ClientSide/client
+      run: node fix-paths.js
+
+    - name: Clear and Create electron build directory
+      run: |
+        rm -rf electron-project/build
+        mkdir -p electron-project/build
+      
+    - name: Copy build files to electron project
+      run: |
+        cp -r ClientSide/client/build/* electron-project/build/
+
+    - name: Update package.json
+      working-directory: ./electron-project
+      shell: bash
+      run: |
+        cat << 'EOL' > update-package.js
+        const fs = require("fs");
+        const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+        pkg.description = pkg.description || "Hooli Launch Application";
+        pkg.author = pkg.author || {
+          "name": "Hooli Launch Team",
+          "email": "your-email@example.com"
+        };
+        fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
+        EOL
+        node update-package.js
+
+    - name: Setup Electron Builder
+      working-directory: ./electron-project
+      run: |
+        npm install --save-dev electron@28.3.3 electron-builder@latest
+        npm install --save-dev @electron/remote@latest
+        npm install --save-dev @electron/rebuild@latest
+  
+    - name: Run electron-builder
+      working-directory: ./electron-project
+      run: |
+        npx electron-builder --win --x64 --publish never
+
+    - name: Install Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+        export_default_credentials: true
+
+    - name: Authenticate to Google Cloud
+      run: |
+        echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' > service-account.json
+        gcloud auth activate-service-account --key-file=service-account.json
+
+    - name: Install Google Drive CLI tool
+      run: |
+        pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+
+    - name: Create upload script
+      shell: bash
+      run: |
+        cat << 'EOL' > upload.py
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        from googleapiclient.http import MediaFileUpload
+        from googleapiclient.errors import HttpError
+        import os
+        import json
+        import re
+
+        def get_latest_version(service, folder_id):
+            try:
+                results = service.files().list(
+                    q=f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.folder' and name starts with 'v'",
+                    fields="nextPageToken, files(name)",
+                    orderBy="name desc",
+                    pageSize=1000
+                ).execute()
+                
+                folders = results.get('files', [])
+                print(f"Found folders: {[f['name'] for f in folders]}")
+                
+                if not folders:
+                    return 0
+                
+                version_numbers = []
+                for folder in folders:
+                    match = re.search(r'v(\d+)', folder['name'])
+                    if match:
+                        version_numbers.append(int(match.group(1)))
+                
+                if not version_numbers:
+                    return 0
+                    
+                latest_version = max(version_numbers)
+                print(f"Latest version found: v{latest_version}")
+                return latest_version
+                
+            except Exception as e:
+                print(f"Error getting latest version: {str(e)}")
+                return 0
+
+        try:
+            credentials = service_account.Credentials.from_service_account_file(
+                'service-account.json',
+                scopes=[
+                    'https://www.googleapis.com/auth/drive',
+                    'https://www.googleapis.com/auth/drive.file',
+                    'https://www.googleapis.com/auth/drive.metadata'
+                ]
+            )
+
+            service_account_info = json.load(open('service-account.json'))
+            print(f"Using service account: {service_account_info['client_email']}")
+
+            service = build('drive', 'v3', credentials=credentials)
+            base_folder_id = os.environ['FOLDER_ID']
+
+            latest_version = get_latest_version(service, base_folder_id)
+            new_version = latest_version + 1
+            version_folder_name = f"v{new_version}"
+            
+            print(f"Creating new version folder: {version_folder_name}")
+
+            version_folder_metadata = {
+                'name': version_folder_name,
+                'mimeType': 'application/vnd.google-apps.folder',
+                'parents': [base_folder_id]
+            }
+            
+            version_folder = service.files().create(
+                body=version_folder_metadata,
+                fields='id'
+            ).execute()
+            
+            version_folder_id = version_folder.get('id')
+            print(f"Created version folder: {version_folder_name}")
+
+            file_path = 'electron-project/dist/Hooli Launch Setup 1.0.0.exe'
+            
+            if os.path.exists(file_path):
+                print(f"Found file to upload: {file_path}")
+                file_metadata = {
+                    'name': 'HooliLaunch.exe',
+                    'parents': [version_folder_id]
+                }
+                
+                media = MediaFileUpload(
+                    file_path,
+                    mimetype='application/octet-stream',
+                    resumable=True
+                )
+                
+                print(f"Starting file upload to folder {version_folder_name}")
+                file = service.files().create(
+                    body=file_metadata,
+                    media_body=media,
+                    fields='id,name',
+                    supportsAllDrives=True
+                ).execute()
+                
+                print(f'File uploaded successfully to {version_folder_name}/')
+                print(f'File ID: {file.get("id")}, Name: {file.get("name")}')
+                
+                with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                    print(f'folder_version={new_version}', file=fh)
+            else:
+                print(f'Error: File not found at {file_path}')
+                exit(1)
+
+        except Exception as e:
+            print(f"Error during upload process: {str(e)}")
+            raise e
+        EOL
+
+    - name: Run upload script
+      env:
+        FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+      run: python3 upload.py
+
+    - name: Configure Git for version update
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+
+    - name: Update version
+      id: version
+      working-directory: ./electron-project
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        MAJOR=$(echo $VERSION | cut -d. -f1)
+        MINOR=$(echo $VERSION | cut -d. -f2)
+        PATCH=$(echo $VERSION | cut -d. -f3)
+        NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+        
+        sed -i "s/\"version\": \"$VERSION\"/\"version\": \"$NEW_VERSION\"/" package.json
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        
+        git add package.json
+        git commit -m "Bump version to $NEW_VERSION [skip ci]"
+        git push
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.version.outputs.new_version }}
+        release_name: Release v${{ steps.version.outputs.new_version }}
+        body: |
+          New release version ${{ steps.version.outputs.new_version }}
+          
+          Changes in this release:
+          - Updated build artifacts
+          - Automated version bump
+          - Electron package updated
+        draft: false
+        prerelease: false
