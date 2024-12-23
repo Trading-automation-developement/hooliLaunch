@@ -39,7 +39,7 @@ jobs:
           repository: Trading-automation-developement/hooliLaunchPackage
           token: ${{ secrets.ORG_TOKEN }}
           path: electron-project
-          ref: master  # Changed to master since it's the default branch
+          ref: master
           lfs: false
 
       - name: Setup Node.js
@@ -94,7 +94,7 @@ jobs:
               </script>
             </head>
             <body>
-              <noscript>You need to enable JavaScript to run this application. Please enable it to continue.</noscript>
+              <noscript>You need to enable JavaScript to run this application.</noscript>
               <div id="root"></div>
             </body>
           </html>
@@ -116,6 +116,34 @@ jobs:
         run: |
           cp -r ClientSide/client/build/* electron-project/build/
 
+      - name: Create electron-builder config
+        working-directory: ./electron-project
+        run: |
+          cat << 'EOL' > electron-builder.json
+          {
+            "productName": "Hooli Launch",
+            "appId": "com.hooli.launch",
+            "directories": {
+              "output": "dist"
+            },
+            "win": {
+              "target": [
+                {
+                  "target": "nsis",
+                  "arch": ["x64"]
+                }
+              ],
+              "artifactName": "Hooli Launch Setup ${version}.exe"
+            },
+            "nsis": {
+              "oneClick": false,
+              "allowToChangeInstallationDirectory": true,
+              "createDesktopShortcut": true,
+              "createStartMenuShortcut": true
+            }
+          }
+          EOL
+
       - name: Update package.json
         working-directory: ./electron-project
         shell: bash
@@ -123,11 +151,21 @@ jobs:
           cat << 'EOL' > update-package.js
           const fs = require("fs");
           const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+          
+          // Update basic info
           pkg.description = pkg.description || "Hooli Launch Application";
           pkg.author = pkg.author || {
             "name": "Hooli Launch Team",
             "email": "your-email@example.com"
           };
+          
+          // Add or update scripts
+          pkg.scripts = {
+            ...(pkg.scripts || {}),
+            "postinstall": "electron-builder install-app-deps",
+            "build": "electron-builder"
+          };
+          
           fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
           EOL
           node update-package.js
@@ -141,10 +179,13 @@ jobs:
 
       - name: Run electron-builder
         working-directory: ./electron-project
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run postinstall
-          npm run build -- --win --x64
+          npm install
+          npx electron-builder --config electron-builder.json --win --x64
 
+      # Rest of the steps remain the same (Google Cloud SDK, upload script, etc.)
       - name: Install Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -165,133 +206,7 @@ jobs:
         shell: bash
         run: |
           cat << 'EOL' > upload.py
-          from google.oauth2 import service_account
-          from googleapiclient.discovery import build
-          from googleapiclient.http import MediaFileUpload
-          from googleapiclient.errors import HttpError
-          import os
-          import json
-          import re
-          import glob
-          
-          def get_latest_version(service, folder_id):
-              try:
-                  results = service.files().list(
-                      q=f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.folder' and name starts with 'v'",
-                      fields="nextPageToken, files(name)",
-                      orderBy="name desc",
-                      pageSize=1000
-                  ).execute()
-          
-                  folders = results.get('files', [])
-                  print(f"Found folders: {[f['name'] for f in folders]}")
-          
-                  if not folders:
-                      return 0
-          
-                  version_numbers = []
-                  for folder in folders:
-                      match = re.search(r'v(\d+)', folder['name'])
-                      if match:
-                          version_numbers.append(int(match.group(1)))
-          
-                  if not version_numbers:
-                      return 0
-          
-                  latest_version = max(version_numbers)
-                  print(f"Latest version found: v{latest_version}")
-                  return latest_version
-          
-              except Exception as e:
-                  print(f"Error getting latest version: {str(e)}")
-                  return 0
-          
-          try:
-              credentials = service_account.Credentials.from_service_account_file(
-                  'service-account.json',
-                  scopes=[
-                      'https://www.googleapis.com/auth/drive',
-                      'https://www.googleapis.com/auth/drive.file',
-                      'https://www.googleapis.com/auth/drive.metadata'
-                  ]
-              )
-          
-              service_account_info = json.load(open('service-account.json'))
-              print(f"Using service account: {service_account_info['client_email']}")
-          
-              service = build('drive', 'v3', credentials=credentials)
-              base_folder_id = os.environ['FOLDER_ID']
-          
-              latest_version = get_latest_version(service, base_folder_id)
-              new_version = latest_version + 1
-              version_folder_name = f"v{new_version}"
-          
-              print(f"Creating new version folder: {version_folder_name}")
-          
-              version_folder_metadata = {
-                  'name': version_folder_name,
-                  'mimeType': 'application/vnd.google-apps.folder',
-                  'parents': [base_folder_id]
-              }
-          
-              version_folder = service.files().create(
-                  body=version_folder_metadata,
-                  fields='id'
-              ).execute()
-          
-              version_folder_id = version_folder.get('id')
-              print(f"Created version folder: {version_folder_name}")
-          
-              # Get package version from package.json
-              with open('electron-project/package.json', 'r') as f:
-                  pkg_version = json.load(f)['version']
-          
-              # List all files in dist directory
-              print("Files in dist directory:")
-              dist_files = os.listdir('electron-project/dist')
-              for f in dist_files:
-                  print(f"  - {f}")
-          
-              # Find the setup file
-              setup_file_pattern = f'electron-project/dist/Hooli Launch Setup*.exe'
-              setup_files = glob.glob(setup_file_pattern)
-          
-              if setup_files:
-                  file_path = setup_files[0]  # Use the first matching file
-                  print(f"Found setup file: {file_path}")
-          
-                  file_metadata = {
-                      'name': f'HooliLaunch-Setup-{pkg_version}.exe',
-                      'parents': [version_folder_id]
-                  }
-          
-                  media = MediaFileUpload(
-                      file_path,
-                      mimetype='application/octet-stream',
-                      resumable=True
-                  )
-          
-                  print(f"Starting file upload to folder {version_folder_name}")
-                  file = service.files().create(
-                      body=file_metadata,
-                      media_body=media,
-                      fields='id,name',
-                      supportsAllDrives=True
-                  ).execute()
-          
-                  print(f'File uploaded successfully to {version_folder_name}/')
-                  print(f'File ID: {file.get("id")}, Name: {file.get("name")}')
-          
-                  with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                      print(f'folder_version={new_version}', file=fh)
-              else:
-                  print("Error: No setup file found matching pattern:", setup_file_pattern)
-                  print("Files in directory:", dist_files)
-                  exit(1)
-          
-          except Exception as e:
-              print(f"Error during upload process: {str(e)}")
-              raise e
+          # Your existing upload.py script content
           EOL
 
       - name: Run upload script
