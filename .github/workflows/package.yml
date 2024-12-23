@@ -26,6 +26,13 @@ jobs:
       shell: bash
       run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
       
+    - name: Debug Repository Access
+      run: |
+        echo "Testing repository access..."
+        curl -H "Authorization: token ${{ secrets.ORG_TOKEN }}" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/Trading-automation-developement/hooliLaunchPackage
+
     - name: Checkout electron packaging project
       uses: actions/checkout@v4
       with:
