@@ -172,6 +172,7 @@ jobs:
           import os
           import json
           import re
+          import glob
           
           def get_latest_version(service, folder_id):
               try:
@@ -241,12 +242,26 @@ jobs:
               version_folder_id = version_folder.get('id')
               print(f"Created version folder: {version_folder_name}")
           
-              file_path = 'electron-project/dist/Hooli Launch Setup 1.0.0.exe'
+              # Get package version from package.json
+              with open('electron-project/package.json', 'r') as f:
+                  pkg_version = json.load(f)['version']
           
-              if os.path.exists(file_path):
-                  print(f"Found file to upload: {file_path}")
+              # List all files in dist directory
+              print("Files in dist directory:")
+              dist_files = os.listdir('electron-project/dist')
+              for f in dist_files:
+                  print(f"  - {f}")
+          
+              # Find the setup file
+              setup_file_pattern = f'electron-project/dist/Hooli Launch Setup*.exe'
+              setup_files = glob.glob(setup_file_pattern)
+          
+              if setup_files:
+                  file_path = setup_files[0]  # Use the first matching file
+                  print(f"Found setup file: {file_path}")
+          
                   file_metadata = {
-                      'name': 'HooliLaunch.exe',
+                      'name': f'HooliLaunch-Setup-{pkg_version}.exe',
                       'parents': [version_folder_id]
                   }
           
@@ -270,7 +285,8 @@ jobs:
                   with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                       print(f'folder_version={new_version}', file=fh)
               else:
-                  print(f'Error: File not found at {file_path}')
+                  print("Error: No setup file found matching pattern:", setup_file_pattern)
+                  print("Files in directory:", dist_files)
                   exit(1)
           
           except Exception as e:
