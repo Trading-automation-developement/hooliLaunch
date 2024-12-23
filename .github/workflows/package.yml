@@ -39,7 +39,7 @@ jobs:
         repository: Trading-automation-developement/hooliLaunchPackage  
         token: ${{ secrets.ORG_TOKEN }}
         path: electron-project
-        ref: ${{ steps.branch-name.outputs.branch }}
+        ref: master  # Changed to master since it's the default branch
         lfs: false
 
     - name: Setup Node.js
