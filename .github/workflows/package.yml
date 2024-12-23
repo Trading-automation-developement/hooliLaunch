@@ -2,15 +2,13 @@ name: Build and Package React App
 on:
   push:
     branches:
-      - '*'           
-      - '**'          
+      - '**'
     paths-ignore:
-      - '**.md'       
-      - 'docs/**'     
+      - '**.md'
+      - 'docs/**'
   pull_request:
-    branches: 
-      - '*'          
-      - '**'  
+    branches:
+      - '**'
 
 jobs:
   build:
@@ -32,7 +30,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: Trading-automation-developement/hooliLaunchPackage  
-        token: ${{ secrets.PAT_TOKEN }}
+        token: ${{ secrets.ORG_TOKEN }}
         path: electron-project
         ref: ${{ steps.branch-name.outputs.branch }}
         lfs: false
