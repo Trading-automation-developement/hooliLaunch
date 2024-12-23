@@ -155,6 +155,14 @@ jobs:
           cp -rv ClientSide/client/build/* electron-project/build/
           echo "Verifying copied files:"
           ls -R electron-project/build/
+          
+      - name: Debug Files
+        working-directory: ./electron-project
+        run: |
+          echo "Current directory contents:"
+          ls -la
+          echo "\nPackage.json content:"
+          cat package.json
 
       - name: Create electron-builder config
         working-directory: ./electron-project
@@ -169,7 +177,7 @@ jobs:
             },
             "files": [
               "build/**/*",
-              "node_modules/**/*",
+              "**/*.js",
               "package.json"
             ],
             "publish": null,
@@ -192,59 +200,26 @@ jobs:
           EOL
 
 
-      - name: Update package.json
-        working-directory: ./electron-project
-        shell: bash
-        run: |
-          cat << 'EOL' > update-package.js
-          const fs = require("fs");
-          const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-          
-          // Update basic info
-          pkg.description = pkg.description || "Hooli Launch Application";
-          pkg.author = pkg.author || {
-            "name": "Hooli Launch Team",
-            "email": "your-email@example.com"
-          };
-          
-          // Add or update scripts
-          pkg.scripts = {
-            ...(pkg.scripts || {}),
-            "postinstall": "electron-builder install-app-deps",
-            "build": "electron-builder"
-          };
-          
-          fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
-          EOL
-          node update-package.js
-
       - name: Setup Electron Builder
         working-directory: ./electron-project
         run: |
-          # First, clean up any existing node_modules
           rm -rf node_modules
           rm -f package-lock.json
-          
-          # Install only the necessary dependencies
           npm install --save-dev electron@28.3.3 electron-builder@latest
           npm install --save-dev @electron/remote@latest
-          
-          # Update package.json with main entry point
+
+          # Update package.json
           cat << 'EOL' > update-package.js
           const fs = require("fs");
           const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
           
-          // Update basic info
-          pkg.main = "main.js";
-          pkg.description = pkg.description || "Hooli Launch Application";
-          pkg.author = pkg.author || {
+          pkg.description = "Hooli Launch Application";
+          pkg.author = {
             "name": "Hooli Launch Team",
             "email": "your-email@example.com"
           };
           
-          // Add or update scripts
           pkg.scripts = {
-            ...(pkg.scripts || {}),
             "start": "electron .",
             "build": "electron-builder build",
             "postinstall": "electron-builder install-app-deps"
@@ -253,41 +228,6 @@ jobs:
           fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
           EOL
           node update-package.js
-          
-          # Create main.js if it doesn't exist
-          cat << 'EOL' > main.js
-          const { app, BrowserWindow } = require('electron');
-          const path = require('path');
-          
-          function createWindow() {
-            const win = new BrowserWindow({
-              width: 1200,
-              height: 800,
-              webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false
-              }
-            });
-          
-            win.loadFile(path.join(__dirname, 'build/index.html'));
-          }
-          
-          app.whenReady().then(() => {
-            createWindow();
-          
-            app.on('activate', () => {
-              if (BrowserWindow.getAllWindows().length === 0) {
-                createWindow();
-              }
-            });
-          });
-          
-          app.on('window-all-closed', () => {
-            if (process.platform !== 'darwin') {
-              app.quit();
-            }
-          });
-          EOL
 
       - name: Run electron-builder
         working-directory: ./electron-project
