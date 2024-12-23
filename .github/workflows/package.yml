@@ -31,7 +31,7 @@ jobs:
     - name: Checkout electron packaging project
       uses: actions/checkout@v4
       with:
-        repository: noaamaman325158/hooliLaunchPackage  
+        repository: noaamaman325158/Trading-automation-developement/hooliLaunchPackage  
         token: ${{ secrets.PAT_TOKEN }}
         path: electron-project
         ref: ${{ steps.branch-name.outputs.branch }}
