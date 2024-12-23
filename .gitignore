@@ -131,6 +131,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-
 # Remove the settings.json
 #settings.json
