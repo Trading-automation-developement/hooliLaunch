@@ -16,6 +16,13 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          lfs: true
+      
+      - name: Git LFS Pull
+        run: |
+          git lfs install
+          git lfs pull
 
       - name: Get branch name
         id: branch-name
