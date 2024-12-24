@@ -184,7 +184,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm install
-          npx electron-builder --config electron-builder.json --win --x64 --publish never
+          npm run build -- --win --x64 
 
       - name: Install Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
