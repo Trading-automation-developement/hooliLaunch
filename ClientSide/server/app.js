@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 LOCAL_MEMORY={
-  "destinations": [["Bar","Sim102"]],
+  "destinations": [["Edo","Sim102"]],
   "ComputerWindowsPAth": "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\outgoing\\",  
 }
 
@@ -136,6 +136,7 @@ const FuctionForTrade=(order, nameofAccount,INS)=>{
   try{
 
     console.log("FuctionForTrade",order, nameofAccount,INS )
+    //const path= "C:\\Users\\"+os.userInfo().username+"\\OneDrive\\מסמכים\\NinjaTrader 8\\incoming\\oif." +  uuidv4() + ".txt";
     const path =  "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\incoming\\oif." +  uuidv4() + ".txt";
     const mrkt = "PLACE;"+nameofAccount+";<INS>;<ACT>;<QTY>;MARKET;<LIMIT>;;DAY;;;;";
     var ordr;
