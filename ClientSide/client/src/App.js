@@ -18,11 +18,7 @@ function App() {
     const [loginError, setLoginError] = useState("");
 
     const options = [
-        { value: 'Lior', label: 'Lior' },
-        { value: 'Nadav', label: 'Nadav' },
-        { value: 'Beni', label: 'Beni' },
-        { value: 'Bar', label: 'Bar'},
-        { value: 'Omer', label: 'Omer'}
+        { label: 'Edo', value: 'Edo' },
     ];
 
     const initializeRemoteSocket = () => {
@@ -92,7 +88,7 @@ function App() {
             console.log('Received all data:', data);
             if (data?.destinations) {
                 const formattedList = Array.isArray(data.destinations)
-                    ? data.destinations.map(dest => [data.trader1, dest])
+                    ? data.destinations.map(dest => [data.trader0, dest])
                     : [];
                 console.log('Formatted list:', formattedList);
                 setlist(formattedList);
