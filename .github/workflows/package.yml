@@ -225,10 +225,11 @@ jobs:
           node update-package.js
           
       - name: Run electron-builder
-        working-directory: ./electron-project
-        run: electron-builder build --win --x64 --publish never
+        working-directory: ./electron-project  
+        run: |
+          npx electron-builder build --win --x64 --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
