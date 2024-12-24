@@ -231,9 +231,10 @@ jobs:
 
       - name: Run electron-builder
         working-directory: ./electron-project
+        run: |
+          electron-builder build --win --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:workflow
 
       - name: Install Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
