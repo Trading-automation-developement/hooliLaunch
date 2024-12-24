@@ -1,14 +1,10 @@
 name: Build and Package React App
 on:
   push:
-    branches:
-      - '**'
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
+    branches: ['**']
+    paths-ignore: ['**.md', 'docs/**']
   pull_request:
-    branches:
-      - '**'
+    branches: ['**']
 
 jobs:
   build:
@@ -18,29 +14,20 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout source project
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Get branch name
         id: branch-name
-        shell: bash
         run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
 
-      - name: Debug Repository Access
-        run: |
-          echo "Testing repository access..."
-          curl -H "Authorization: token ${{ secrets.ORG_TOKEN }}" \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/Trading-automation-developement/hooliLaunchPackage
-
-      - name: Checkout electron packaging project
+      - name: Checkout electron project
         uses: actions/checkout@v4
         with:
           repository: Trading-automation-developement/hooliLaunchPackage
           token: ${{ secrets.ORG_TOKEN }}
           path: electron-project
           ref: master
-          lfs: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -61,37 +48,24 @@ jobs:
           npm install
           CI=false npm run build
 
-      - name: Debug React build output
-        working-directory: ./ClientSide/client
-        run: |
-          echo "Contents of build directory:"
-          ls -R build/
-
       - name: Create fix-paths script
         working-directory: ./ClientSide/client
         run: |
-          echo '
+          cat << 'EOL' > fix-paths.js
           const fs = require("fs");
           const path = require("path");
-          
           const buildDir = path.join("build");
           const indexPath = path.join(buildDir, "index.html");
-          
           console.log("Reading from:", indexPath);
           let originalHtml = fs.readFileSync(indexPath, "utf8");
-          
-          // Extract CSS and JS hashes
           const cssMatch = originalHtml.match(/main\.(.*?)\.css/);
           const jsMatch = originalHtml.match(/main\.(.*?)\.js/);
-          
           if (!cssMatch || !jsMatch) {
             console.error("Could not find CSS or JS files in HTML");
             process.exit(1);
           }
-          
           const cssHash = cssMatch[1];
           const jsHash = jsMatch[1];
-          
           const newHtml = `
           <!DOCTYPE html>
           <html lang="en">
@@ -118,124 +92,84 @@ jobs:
               <script type="text/javascript" src="static/js/main.${jsHash}.js"></script>
             </body>
           </html>`;
-          
           fs.writeFileSync(indexPath, newHtml);
           console.log("Updated index.html with correct paths");
-          ' > fix-paths.js
+          EOL
+          node fix-paths.js
 
-      - name: Run fix-paths script
-        working-directory: ./ClientSide/client
-        run: node fix-paths.js
-
-      - name: Verify build structure
-        working-directory: ./ClientSide/client
-        run: |
-          echo "Verifying build structure..."
-          
-          # Check essential files
-          [ -f "build/index.html" ] && echo "✓ index.html exists" || (echo "✗ index.html missing" && exit 1)
-          [ -d "build/static" ] && echo "✓ static directory exists" || (echo "✗ static directory missing" && exit 1)
-          [ -d "build/static/css" ] && echo "✓ css directory exists" || (echo "✗ css directory missing" && exit 1)
-          [ -d "build/static/js" ] && echo "✓ js directory exists" || (echo "✗ js directory missing" && exit 1)
-          
-          echo "Final build contents:"
-          ls -la build/
-          echo "CSS files:"
-          ls -la build/static/css/
-          echo "JS files:"
-          ls -la build/static/js/
-
-      - name: Clear and Create electron build directory
-        run: |
-          rm -rf electron-project/build
-          mkdir -p electron-project/build
-
-      - name: Copy build files to electron project
-        run: |
-          cp -rv ClientSide/client/build/* electron-project/build/
-          echo "Verifying copied files:"
-          ls -R electron-project/build/
-          
-      - name: Debug Files
+      - name: Create electron main.js
         working-directory: ./electron-project
         run: |
-          echo "Current directory contents:"
-          ls -la
-          echo "\nPackage.json content:"
-          cat package.json
-
-      - name: Create electron-builder config
-        working-directory: ./electron-project
-        run: |
-          cat << 'EOL' > electron-builder.json
-          {
-            "productName": "Hooli Launch",
-            "appId": "com.hooli.launch",
-            "directories": {
-              "output": "dist",
-              "buildResources": "build"
-            },
-            "files": [
-              "build/**/*",
-              "**/*.js",
-              "package.json"
-            ],
-            "publish": null,
-            "win": {
-              "target": [
-                {
-                  "target": "nsis",
-                  "arch": ["x64"]
-                }
-              ],
-              "artifactName": "Hooli Launch Setup ${version}.exe"
-            },
-            "nsis": {
-              "oneClick": false,
-              "allowToChangeInstallationDirectory": true,
-              "createDesktopShortcut": true,
-              "createStartMenuShortcut": true
-            }
+          cat << 'EOL' > main.js
+          const { app, BrowserWindow } = require('electron');
+          const path = require('path');
+          
+          function createWindow() {
+            const win = new BrowserWindow({
+              width: 1200,
+              height: 800,
+              webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+                enableRemoteModule: true
+              }
+            });
+          
+            win.loadFile(path.join(__dirname, 'build', 'index.html'));
           }
+          
+          app.whenReady().then(createWindow);
+          
+          app.on('window-all-closed', () => {
+            if (process.platform !== 'darwin') {
+              app.quit();
+            }
+          });
+          
+          app.on('activate', () => {
+            if (BrowserWindow.getAllWindows().length === 0) {
+              createWindow();
+            }
+          });
           EOL
 
+      - name: Copy build files
+        run: |
+          rm -rf electron-project/build
+          cp -r ClientSide/client/build electron-project/
+          echo "Verifying copied files:"
+          ls -R electron-project/build/
 
       - name: Setup Electron Builder
         working-directory: ./electron-project
         run: |
-          rm -rf node_modules
-          rm -f package-lock.json
-          npm install --save-dev electron@28.3.3 electron-builder@latest
-          npm install --save-dev @electron/remote@latest
-
-          # Update package.json
+          rm -rf node_modules package-lock.json
+          npm install --save-dev electron@28.3.3 electron-builder@latest @electron/remote@latest
+          
           cat << 'EOL' > update-package.js
           const fs = require("fs");
           const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-          
           pkg.description = "Hooli Launch Application";
-          pkg.author = {
-            "name": "Hooli Launch Team",
-            "email": "your-email@example.com"
-          };
-          
+          pkg.author = { "name": "Hooli Launch Team", "email": "your-email@example.com" };
+          pkg.main = "main.js";
           pkg.scripts = {
             "start": "electron .",
             "build": "electron-builder build",
             "postinstall": "electron-builder install-app-deps"
           };
-          
           fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
           EOL
           node update-package.js
 
       - name: Run electron-builder
+        id: build-electron
         working-directory: ./electron-project
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm install
-          npx electron-builder --config electron-builder.json --win --x64 --publish never
+          npx electron-builder build --win --x64 --publish never
+          echo "build_success=true" >> $GITHUB_OUTPUT
 
       - name: Install Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
@@ -244,17 +178,10 @@ jobs:
           service_account_key: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
           export_default_credentials: true
 
-      - name: Authenticate to Google Cloud
-        run: |
-          echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' > service-account.json
-          gcloud auth activate-service-account --key-file=service-account.json
-
-      - name: Install Google Drive CLI tool
-        run: |
-          pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+      - name: Install Drive dependencies
+        run: pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
       - name: Create upload script
-        shell: bash
         run: |
           cat << 'EOL' > upload.py
           from google.oauth2 import service_account
@@ -334,22 +261,19 @@ jobs:
               version_folder_id = version_folder.get('id')
               print(f"Created version folder: {version_folder_name}")
           
-              # Get package version from package.json
               with open('electron-project/package.json', 'r') as f:
                   pkg_version = json.load(f)['version']
           
-              # List all files in dist directory
               print("Files in dist directory:")
               dist_files = os.listdir('electron-project/dist')
               for f in dist_files:
                   print(f"  - {f}")
           
-              # Find the setup file
               setup_file_pattern = f'electron-project/dist/Hooli Launch Setup*.exe'
               setup_files = glob.glob(setup_file_pattern)
           
               if setup_files:
-                  file_path = setup_files[0]  # Use the first matching file
+                  file_path = setup_files[0]
                   print(f"Found setup file: {file_path}")
           
                   file_metadata = {
@@ -386,20 +310,24 @@ jobs:
               raise e
           EOL
 
-      - name: Run upload script
+      - name: Upload to Google Drive
+        id: upload
+        if: steps.build-electron.outputs.build_success == 'true'
         env:
           FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
-        run: python3 upload.py
-
-      - name: Configure Git for version update
         run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
+          echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' > service-account.json
+          python3 upload.py
+          echo "upload_success=true" >> $GITHUB_OUTPUT
 
       - name: Update version
+        if: steps.upload.outputs.upload_success == 'true'
         id: version
         working-directory: ./electron-project
         run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          
           VERSION=$(node -p "require('./package.json').version")
           MAJOR=$(echo $VERSION | cut -d. -f1)
           MINOR=$(echo $VERSION | cut -d. -f2)
@@ -411,9 +339,11 @@ jobs:
           
           git add package.json
           git commit -m "Bump version to $NEW_VERSION [skip ci]"
-          git push
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
       - name: Create Release
+        id: create_release
+        if: steps.version.outputs.new_version != ''
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -421,11 +351,21 @@ jobs:
           tag_name: v${{ steps.version.outputs.new_version }}
           release_name: Release v${{ steps.version.outputs.new_version }}
           body: |
-            New release version ${{ steps.version.outputs.new_version }}
+            Release v${{ steps.version.outputs.new_version }}
             
-            Changes in this release:
+            Changes:
             - Updated build artifacts
-            - Automated version bump
             - Electron package updated
           draft: false
           prerelease: false
+
+      - name: Upload Release Asset
+        if: steps.version.outputs.new_version != ''
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./electron-project/dist/Hooli Launch Setup ${{ steps.version.outputs.new_version }}.exe
+          asset_name: HooliLaunch-Setup-${{ steps.version.outputs.new_version }}.exe
+          asset_content_type: application/octet-stream
