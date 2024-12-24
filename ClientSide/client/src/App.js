@@ -88,6 +88,7 @@ function App() {
             setLoginError('Connection error occurred');
         });
 
+
         socketRemoteServer.on('SendAllData', (data) => {
             console.log('Received all data:', data);
             if (data?.destinations) {
