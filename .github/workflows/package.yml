@@ -226,7 +226,7 @@ jobs:
           
       - name: Run electron-builder
         working-directory: ./electron-project
-        run: npm run build:workflow
+        run: electron-builder build --win --x64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
