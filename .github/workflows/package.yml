@@ -201,36 +201,19 @@ jobs:
 
 
       - name: Setup Electron Builder
-        working-directory: ./electron-project
         run: |
-          rm -rf node_modules
-          rm -f package-lock.json
-          
-          # Create update-package.js
-          cat << 'EOL' > update-package.js
-          const fs = require("fs");
-          const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-          pkg.description = "Hooli Launch Application";
-          pkg.author = { "name": "Hooli Launch Team", "email": "your-email@example.com" };
-          pkg.scripts = {
-            "start": "electron .",
-            "build": "electron-builder build",
-            "build:workflow": "electron-builder build --win --x64",
-            "postinstall": "electron-builder install-app-deps"
-          };
-          fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
-          EOL
-          
-          npm install --save-dev electron@28.3.3 electron-builder@latest @electron/remote@latest
-          node update-package.js
-          
-      - name: Run electron-builder
-        working-directory: ./electron-project  
-        run: |
-          npx electron-builder build --win --x64 --publish never
-        env:
-         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          mkdir -p electron-project
+          cd electron-project
+          npm init -y
+          npm install --save-dev electron@28.3.3 electron-builder@latest
+          # Update package.json as needed
 
+      - name: Run Build
+        working-directory: ./electron-project
+        run: npx electron-builder build --win --x64 --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Install Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
