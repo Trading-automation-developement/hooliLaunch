@@ -14,15 +14,19 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout source
+      - name: Checkout with LFS
         uses: actions/checkout@v4
         with:
           lfs: true
+          fetch-depth: 0
       
-      - name: Git LFS Pull
+      - name: Setup Git LFS
         run: |
           git lfs install
+          git lfs track "dist/**/*"
+          git add .gitattributes
           git lfs pull
+          git config lfs.allowincompletepush true
 
       - name: Get branch name
         id: branch-name
