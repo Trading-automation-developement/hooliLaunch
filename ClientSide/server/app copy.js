@@ -99,9 +99,9 @@ const FuctionForTrade=(order, nameofAccount)=>{
 
   const path =  "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\incoming\\oif." +  uuidv4() + ".txt";
   const mrkt = "PLACE;"+nameofAccount+";<INS>;<ACT>;<QTY>;MARKET;<LIMIT>;;DAY;;;;";
-  var ordr = mrkt.replace("<INS>","NQ 03-25").replace("<ACT>",action).replace("<QTY>",amount);
+  var ordr = mrkt.replace("<INS>","NQ ${digits_rep_date}").replace("<ACT>",action).replace("<QTY>",amount);
   if( Currentvalues['action'].includes("FLAT")){
-     ordr = "CLOSEPOSITION;<ACCOUNT>;<INSTRUMENT>;;;;;;;;;;".replace("<ACCOUNT>",nameofAccount).replace("<INSTRUMENT>","NQ 03-25");
+     ordr = "CLOSEPOSITION;<ACCOUNT>;<INSTRUMENT>;;;;;;;;;;".replace("<ACCOUNT>",nameofAccount).replace("<INSTRUMENT>","NQ ${digits_rep_date}");
   }
   //console.log("amount ", amount)
  // console.log("path ", path);

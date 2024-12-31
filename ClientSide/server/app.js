@@ -9,7 +9,9 @@ const {  checkMacAddressExists } = require('./mongoDBService.js');
 const app = express();
 const PORT = 2222;
 const io = require('socket.io')(PORT);
-
+const { contractDates } = require('../../date_service');
+const date_service = require('../../date_service');
+const { getCurrentContractDate } = require('../../date_service');
 
 app.use(express.json());
 app.use(cors());
@@ -21,6 +23,8 @@ LOCAL_MEMORY={
   "ComputerWindowsPAth": "C:\\Users\\"+os.userInfo().username+"\\Documents\\NinjaTrader 8\\outgoing\\",  
 }
 
+let digits_rep_date = contractDates[date_service.getCurrentContractDate()]["numeric"];
+let text_rep_date = contractDates[date_service.getCurrentContractDate()]["textual"];
 
 io.on('connection', (socket) => {
   //console.log('Client connected -CLIENT SERVER SIDE',LOCAL_MEMORY.destinations, socket.handshake.headers.host );
@@ -50,7 +54,7 @@ socket.on('TradeNow', (data) => {
   console.log("--------")
   console.log('TradeNow', data["d"], data["INS"],data["trader"], new Date(), Currentvalues);
   for(var key in LOCAL_MEMORY.destinations ){
-    if(data["trader"]==LOCAL_MEMORY.destinations[key][0]){
+    if(data["trader"]===LOCAL_MEMORY.destinations[key][0]){
       console.log("->",LOCAL_MEMORY.destinations[key][0]);
     console.log("Copy same trade to -",LOCAL_MEMORY.destinations[key][0] )
     FuctionForTrade(data["d"], LOCAL_MEMORY.destinations[key][1], data["INS"])
@@ -67,7 +71,7 @@ socket.on('TradeNow', (data) => {
 let Currentvalues = {};
 var dateOfLastTrade=new Date();
 let PrevFunction = {
-  "MNQ 03-25":{
+  ["MNQ " + digits_rep_date]:{
 
     "Sim102":{
         'action': "FLAT",
@@ -78,7 +82,7 @@ let PrevFunction = {
       'Amount': 0
   },
 },
-"NQ 03-25":{
+["NQ " + digits_rep_date]:{
 
   "Sim102":{
       'action': "FLAT",
@@ -89,7 +93,7 @@ let PrevFunction = {
     'Amount': 0
 },
 },
-"MES 03-25":{
+["MES " + digits_rep_date]:{
   "APEX-36565-26":{
     'action': "FLAT",
     'Amount': 0
@@ -108,7 +112,7 @@ let PrevFunction = {
   'Amount': 0
 },
 },
-"ES 03-25":{
+["ES " + digits_rep_date]:{
   "Sim102":{
       'action': "FLAT",
       'Amount': 0
@@ -141,19 +145,19 @@ const FuctionForTrade=(order, nameofAccount,INS)=>{
     var ordr;
 
   var updated_ins=INS;
-  if(updated_ins.includes("SEP24")){
-    updated_ins = updated_ins.replace("SEP24", "03-25")
+  if(updated_ins.includes(text_rep_date)){
+    updated_ins = updated_ins.replace(text_rep_date, digits_rep_date)
     console.log("new ins is", updated_ins)
   }
 
-  if(updated_ins.includes("DEC24")){
-    updated_ins = updated_ins.replace("DEC24", "03-25")
-    console.log("new ins is", updated_ins)
-  }
-  if(updated_ins.includes("MAR25")){
-    updated_ins = updated_ins.replace("MAR25", "03-25")
-    console.log("new ins is", updated_ins)
-  }
+  // if(updated_ins.includes("DEC24")){
+  //   updated_ins = updated_ins.replace("DEC24", "${digits_rep_date}")
+  //   console.log("new ins is", updated_ins)
+  // }
+  // if(updated_ins.includes("MAR25")){
+  //   updated_ins = updated_ins.replace("MAR25", "${digits_rep_date}")
+  //   console.log("new ins is", updated_ins)
+  // }
 
   
 
@@ -172,7 +176,7 @@ const FuctionForTrade=(order, nameofAccount,INS)=>{
     Currentvalues['Amount'] = returnAmount(order)
 
 
-    if( Currentvalues['action']==("FLAT")){
+    if(Currentvalues['action']===("FLAT")){
       ordr = "CLOSEPOSITION;<ACCOUNT>;<INSTRUMENT>;;;;;;;;;;".replace("<ACCOUNT>",nameofAccount).replace("<INSTRUMENT>",updated_ins);
       console.log("ordr ", ordr);
       fs.writeFileSync(path,ordr);
